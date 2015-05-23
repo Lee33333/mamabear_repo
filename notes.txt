@@ -1,0 +1,13 @@
+TODO
+* Component to periodically list apps and
+  get images -> (container,host,status) map
+* Call for adding new deployment hosts,
+  and registries
+* Call for updating hosts and registries  
+* Call for adding a new app and new app
+  deployments
+* Call for updating app deployments
+
+* RPC calls
+  - launch deployment (rolling deploy)
+  - force deployment (stop, run)
