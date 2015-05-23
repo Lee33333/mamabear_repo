@@ -7,7 +7,7 @@ setup(name='click2care-mamabear',
       version=version,
       description='Manages docker containers',
       install_requires=[
-          'cherrypy', 'routes', 'sqlalchemy', 'mysql-python'],
+          'cherrypy', 'routes', 'sqlalchemy', 'mysql-python', 'docker-py'],
       packages=find_packages(),
       py_modules=['mamabear',],
       include_package_data=True,

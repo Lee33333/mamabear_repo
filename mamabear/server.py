@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import os
+import sys
+import getopt
 import cherrypy
 import ConfigParser
 
@@ -58,15 +60,7 @@ def get_app():
     return app
 
     
-def start():
-    config = ConfigParser.ConfigParser()
-    
-    env = os.environ.get('CLICK2CARE_ENVIRONMENT')
-    if env:
-        config.readfp(open(HERE+'/../conf/mamabear.'+env+'.cfg'))
-    else:
-        config.readfp(open(HERE+'/../conf/mamabear.cfg'))
-        
+def start(config):
     app = get_app()
 
     connection_string = "mysql://%s:%s@%s/%s" % (
@@ -85,4 +79,26 @@ def start():
     cherrypy.quickstart(app)
 
 if __name__ == '__main__':
-    start()
+    argv = sys.argv[1:]
+    conf = None
+
+    try:
+        opts, args = getopt.getopt(argv, "hc:")
+    except getopt.GetoptError:
+        print 'Usage: server.py -c <configFile>'
+        sys.exit(2)
+
+    for opt, arg in opts:
+        if opt == "-h":
+            print 'Usage: server.py -c <configFile>'
+        elif opt == "-c":
+            conf = arg
+
+    if conf is None:
+        print "Config file must be given. Usage: server.py -c <conf>'"
+        sys.exit(2)
+
+    c = ConfigParser.ConfigParser()
+    c.readfp(open(conf))
+            
+    start(c)
