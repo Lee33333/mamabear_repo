@@ -1,4 +1,5 @@
 import docker
+import requests
 
 class DockerWrapper(object):
 
@@ -15,6 +16,14 @@ class DockerWrapper(object):
             tls=self._tls_conf
         )
 
+    def list_images(self, registry_url, app_name, username, password=None):
+        url = "%s/repositories/%s/%s/tags" % (registry_url, username, app_name)
+        if password:
+            r = requests.get(url, auth=(username, password))
+        else:
+            r = requests.get(url)
+        return r.json()
+        
     def ps(self):
         return self._client.containers()
 
