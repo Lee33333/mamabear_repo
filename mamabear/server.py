@@ -2,6 +2,7 @@
 
 import os
 import sys
+import json
 import getopt
 import cherrypy
 import ConfigParser
@@ -25,13 +26,16 @@ def get_app():
     d.connect(name='mamabear-apps', route="/mamabear", controller=AppController)
 
     with d.mapper.submapper(path_prefix='/mamabear/v1', controller='mamabear-hosts') as m:
-        m.connect('hosts', '/host', action='list_hosts')
+        m.connect('hosts', '/host', action='list_hosts', conditions=dict(method=['GET']))
+        m.connect('hosts_new', '/host', action='add_host', conditions=dict(method=['POST']))
 
     with d.mapper.submapper(path_prefix='/mamabear/v1', controller='mamabear-apps') as m:
         m.connect('apps', '/app', action='list_apps', conditions=dict(method=['GET']))
+        m.connect('apps_new', '/app', action='add_app', conditions=dict(method=['POST']))
         m.connect('images', '/app/{name}/images', action='app_images', conditions=dict(method=['GET']))
         m.connect('deployments', '/app/{name}/deployments', action='app_deployments', conditions=dict(method=['GET']))
-            
+        m.connect('deployments_new', '/app/{name}/deployments', action='add_app_deployment', conditions=dict(method=['POST']))
+        
     server_cfg = {
         'server.socket_host': '0.0.0.0',
         'server.socket_port': 9055,

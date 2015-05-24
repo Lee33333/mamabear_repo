@@ -12,8 +12,8 @@ class HostController(object):
             }
             
         return {
-            'hits': Host.list(cherrypy.request.db, type=type),
-            'total': Host.count(cherrypy.request.db, type=type)
+            'hits': Host.list(cherrypy.request.db),
+            'total': Host.count(cherrypy.request.db)
         }
         
     def get_host(self, hostname=None):
@@ -27,93 +27,29 @@ class HostController(object):
 
         cherrypy.response.status = 404
         return {"error":"host with name {0} not found".format(hostname)}
-            
+
+    @cherrypy.tools.json_in()
+    @cherrypy.tools.json_out()
+    def add_host(self):
+        data = cherrypy.request.json
+        if 'host' in data and 'hostname' in data['host']:
+            host = Host.get_by_name(cherrypy.request.db, data['host']['hostname'])
+            if host:
+                cherrypy.response.status = 409
+                return {'error': 'Host with name {} already exists'.format(data['host']['hostname'])}
+                
+            host = Host.create(cherrypy.request.db, data['host'])
+            if host:
+                cherrypy.response.status = 201
+                return {'created':host.hostname}
+            else:
+                cherrypy.response.status = 500
+                return {'error': 'internal server error'}
+                
+        cherrypy.response.status = 400
+        return {'error': 'malformed request, request body must include host data'}
         
 class AppController(object):
-
-    apps = [
-        {
-            'name': 'sagebear',
-            'images': [
-                {'tag':'1', 'hash':'sagebear-image-0'},
-                {'tag':'2', 'hash':'sagebear-image-1'}
-            ],
-            'deployments': {
-                'test': {
-                    'configuration': {
-                        'image': '1',
-                        'status_endpoint': '/status',
-                        'mapped_ports': [
-                            '9041:9041'
-                        ],
-                        'hosts': [
-                            '10.0.0.1',
-                            '10.0.0.3'
-                        ]
-                    },
-                    'containers': [
-                        {'host':'10.0.0.1', 'container': 'sagebear-1-instance0', 'status': 'ok'},
-                        {'host':'10.0.0.3', 'container': 'sagebear-1-instance1', 'status': 'ok'}
-                    ]
-                }
-            }
-        },
-        {
-            'name': 'carebear',
-            'images': [
-                {'tag':'1', 'hash':'cb-image-1'},
-                {'tag':'2', 'hash':'cb-image-2'},
-                {'tag':'3', 'hash':'cb-image-3'}
-            ],
-            'deployments': {
-                'test': {
-                    'configuration': {
-                        'image': '3',
-                        'status_endpoint': '/carebear/status',
-                        'mapped_ports': [
-                            '9001:9001'
-                        ],
-                        'hosts': [
-                            '10.0.0.1',
-                            '10.0.0.2',
-                            '10.0.0.3'
-                        ]
-                    },
-                    'containers': [
-                        {'host':'10.0.0.1', 'container': 'carebear-3-instance0', 'status': 'ok'},
-                        {'host':'10.0.0.2', 'container': 'carebear-3-instance2', 'status': 'ok'},
-                        {'host':'10.0.0.3', 'container': 'carebear-3-instance3', 'status': 'error'}
-                    ]
-                },
-                'prod': {
-                    'configuration': {
-                        'image': '2',
-                        'status_endpoint': '/carebear/status',
-                        'mapped_ports': [
-                            '9001:9001'
-                        ],
-                        'hosts': [
-                            '10.0.0.1',
-                            '10.0.0.2',
-                            '10.0.0.3'
-                        ]
-                    },
-                    'containers': [
-                        {'host':'10.0.0.1', 'container': 'carebear-2-instance0', 'status': 'ok'},
-                        {'host':'10.0.0.2', 'container': 'carebear-2-instance2', 'status': 'ok'},
-                        {'host':'10.0.0.3', 'container': 'carebear-2-instance3', 'status': 'ok'}
-                    ]
-                }
-            }
-            
-        },
-        {
-            'name': 'curator',
-            'images': [
-                {'tag':'1', 'hash':'cur-image-2'}
-            ]                
-        }
-    ]
     
     @cherrypy.tools.json_out()
     def list_apps(self, name=None):
@@ -145,3 +81,15 @@ class AppController(object):
 
         cherrypy.response.status = 404
         return {"error":"app with name {0} not found".format(name)}
+
+    @cherrypy.tools.json_in()
+    @cherrypy.tools.json_out()
+    def add_app(self):
+        print "ADDING APP {}".format(cherrypy.request.json)
+        return {}
+
+    @cherrypy.tools.json_in()
+    @cherrypy.tools.json_out()
+    def add_app_deployment(self, name=None):
+        print "ADDING APP DEPLOYMENT {}".format(cherrypy.request.json)
+        return {}

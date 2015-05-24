@@ -1,4 +1,4 @@
-
+import traceback
 from sqlalchemy.sql.expression import func
 from sqlalchemy.orm import relationship, backref, load_only
 from sqlalchemy.ext.declarative import declarative_base
@@ -11,15 +11,37 @@ class Host(Base):
     __tablename__ = "hosts"
 
     id = Column(Integer, autoincrement=True, primary_key=True)
-    hostname = Column(String(200), index=True)
+    hostname = Column(String(200), index=True, unique=True)
     port = Column(Integer)
     asg_name = Column(String(200), ForeignKey("aws_asgs.group_name"), index=True)
     containers = relationship("Container", backref="host")
 
     @staticmethod
+    def create(session, data):
+        hostname = data.get('hostname')
+        port = data.get('port')
+        asg_name = data.get('asg_name')
+
+        if hostname:
+            host = Host(hostname=hostname)
+            if port:
+                host.port = port
+            if asg_name:
+                host.asg_name = asg_name
+            try:
+                session.add(host)
+                session.commit()
+            except Exception as e:
+                session.rollback()
+                traceback.print_exc()
+                return
+            return host
+                
+    @staticmethod
     def get_by_name(session, hostname):
-        h = session.query(Host).filter(Host.hostname == hostname).limit(1).one()
-        return h
+        h = session.query(Host).filter(Host.hostname == hostname).limit(1)
+        if h.count() == 1:
+            return h.one()
 
     @staticmethod    
     def list_query(session):
