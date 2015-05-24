@@ -37,7 +37,13 @@ class HostController(object):
             if host:
                 cherrypy.response.status = 409
                 return {'error': 'Host with name {} already exists'.format(data['host']['hostname'])}
-                
+
+            if 'asg_name' in data['host']:
+                group = AWSAutoScalingGroup.get(cherrypy.request.db, data['host']['asg_name'])
+                if not group:
+                    cherrypy.response.status = 409
+                    return {'error': 'ASG with name {} does not exist'.format(data['host']['asg_name'])}
+                    
             host = Host.create(cherrypy.request.db, data['host'])
             if host:
                 cherrypy.response.status = 201
@@ -85,11 +91,45 @@ class AppController(object):
     @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()
     def add_app(self):
-        print "ADDING APP {}".format(cherrypy.request.json)
-        return {}
+        data = cherrypy.request.json
+        if 'app' in data and 'name' in data['app']:
+            app = App.get(cherrypy.request.db, data['app']['name'])
+            if app:
+                cherrypy.response.status = 409
+                return {'error': 'App with name {} already exists'.format(data['app']['name'])}
+                    
+            app = App.create(cherrypy.request.db, data['app']['name'])
+            if app:
+                cherrypy.response.status = 201
+                return {'created':app.name}
+            else:
+                cherrypy.response.status = 500
+                return {'error': 'internal server error'}
+                
+        cherrypy.response.status = 400
+        return {'error': 'malformed request, request body must include app data'}
 
     @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()
     def add_app_deployment(self, name=None):
-        print "ADDING APP DEPLOYMENT {}".format(cherrypy.request.json)
-        return {}
+        data = cherrypy.request.json
+        if 'deployment' in data and all(k in data['deployment'] for k in Deployment.required_keys):
+            d = data['deployment']
+            app = d['app_name']
+            image = d['image_tag']
+            env = d['environment']
+            deployment = Deployment.get_by_app(cherrypy.request.db, app, image_tag=image, environment=env)
+            if deployment:
+                cherrypy.response.status = 409
+                return {'error': 'Deployment with configuration ({}:{},{}) already exists'.format(app, image, env)}
+                    
+            deployment = Deployment.create(cherrypy.request.db, d)
+            if deployment:
+                cherrypy.response.status = 201
+                return {'created':"({}:{},{})".format(deployment.app_name, deployment.image_tag, deployment.environment)}
+            else:
+                cherrypy.response.status = 500
+                return {'error': 'internal server error'}
+                
+        cherrypy.response.status = 400
+        return {'error': 'malformed request, request body must include deployment data with {}'.format(Deployment.required_keys)}

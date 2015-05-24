@@ -59,10 +59,14 @@ class Host(Base):
         return [h.encode() for h in q.all()]
     
     def encode(self):
-        return {
+        encoded = {
             'hostname': self.hostname,
-            'port': self.port
+            'port': self.port,
+            'containers': [c.encode() for c in self.containers]
         }
+        if self.asg_name:
+            encoded['asg_name'] = self.asg_name
+        return encoded
         
 class Image(Base):
     __tablename__ = "images"
@@ -120,6 +124,19 @@ class App(Base):
     images = relationship("Image", backref="app")
 
     @staticmethod
+    def create(session, name):
+        if name:
+            app = App(name=name)
+            try:
+                session.add(app)
+                session.commit()
+            except Exception as e:
+                session.rollback()
+                traceback.print_exc()
+                return
+            return app
+            
+    @staticmethod
     def get(session, name):
         return session.query(App).get(name)
         
@@ -149,10 +166,10 @@ class Deployment(Base):
     __tablename__ = "deployments"
 
     id = Column(Integer, autoincrement=True, primary_key=True)    
-    image_tag = Column(String(200))
-    app_name = Column(String(200), ForeignKey("apps.name"))
-    environment = Column(String(4), index=True)
-    status_endpoint = Column(String(200))
+    image_tag = Column(String(200), nullable=False)
+    app_name = Column(String(200), ForeignKey("apps.name"), index=True, nullable=False)
+    environment = Column(String(4), index=True, nullable=False)
+    status_endpoint = Column(String(200), nullable=False)
     mapped_ports = Column(Text)
     mapped_volumes = Column(Text)
 
@@ -163,11 +180,63 @@ class Deployment(Base):
     hosts = relationship("Host", secondary=deployment_hosts, backref="deployments")
     containers = relationship("Container", backref="deployment")
 
+    required_keys = ['image_tag', 'app_name', 'environment', 'status_endpoint']
+    
+    @staticmethod
+    def get_by_app(session, app_name, image_tag=None, environment=None):
+        q = session.query(Deployment).filter(Deployment.app_name == app_name)
+        if image_tag:
+            q = q.filter(Deployment.image_tag == image_tag)
+        if environment:
+            q = q.filter(Deployment.environment == environment)
+        q = q.limit(1)
+        if q.count() == 1:
+            return q.one()
+
+    @staticmethod
+    def create(session, data):
+        if all(k in data for k in Deployment.required_keys):
+            d = Deployment(
+                image_tag=data['image_tag'],
+                app_name=data['app_name'],
+                environment=data['environment'],
+                status_endpoint=data['status_endpoint']
+            )
+            if 'mapped_ports' in data:
+                # FIXME: do some validation of structure here
+                d.mapped_ports = data['mapped_ports']
+            if 'mapped_volumes' in data:
+                # FIXME: do some validation of structure here
+                d.mapped_volumes = data['mapped_volumes']
+            if 'parent' in data:
+                d.parent_id = data['parent']
+            if 'environment_variables' in data:
+                for var in data['environment_variables']:
+                    value = data['environment_variables'][var]
+                    d.env_vars.append(EnvironmentVariable(property_key=var, property_value=value))
+            if 'hosts' in data:
+                for name in data['hosts']:
+                    host = Host.get_by_name(session, name)
+                    if host:
+                        d.hosts.append(host)
+                    # FIXME: What should we do when the host specified isn't configured?
+            try:
+                session.add(d)
+                session.commit()
+                return d
+            except:
+                session.rollback()
+                traceback.print_exc()
+
+                
     def encode(self):
         ports = self.mapped_ports.split(',') if self.mapped_ports else []
         volumes = self.mapped_volumes.split(',') if self.mapped_volumes else []
         return {
             'environment': self.environment,
+            'parent': self.parent_id,
+            'image_tag': self.image_tag,
+            'app_name': self.app_name,
             'status_endpoint': self.status_endpoint,
             'mapped_ports': ports,
             'mapped_volumes': volumes,
@@ -199,3 +268,7 @@ class AWSAutoScalingGroup(Base):
     group_name = Column(String(200), primary_key=True)
 
     hosts = relationship("Host", backref="auto_scaling_group")
+
+    @staticmethod
+    def get(session, group_name):
+        return session.query(AWSAutoScalingGroup).get(group_name)
