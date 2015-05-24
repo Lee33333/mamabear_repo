@@ -155,7 +155,14 @@ class App(Base):
     @staticmethod
     def list(session, name=None):
         q = App.list_query(session, name)
-        return [a.name for a in q.all()]
+        return [a.encode() for a in q.all()]
+
+    def encode(self):
+        return {
+            'name': self.name,
+            'image_count': len(self.images),
+            'container_count': sum([len(d.containers) for d in self.deployments])
+        }
         
 deployment_hosts = Table(
     'deployment_hosts', Base.metadata,
