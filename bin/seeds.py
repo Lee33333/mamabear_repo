@@ -30,7 +30,8 @@ def load_seeds(db):
 
     d1 = Deployment(
         image_tag='10', environment='test', status_endpoint='/curator/v1/status',
-        mapped_ports="9099:9099", hosts=[h1])
+        mapped_ports="9099:9099", hosts=[h1],
+        env_vars=[EnvironmentVariable(property_key='ENV', property_value='test')])
 
     app1 = App(name='sagebear', deployments=[d1])
     db.add(app1)    

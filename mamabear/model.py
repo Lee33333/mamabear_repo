@@ -126,7 +126,7 @@ deployment_hosts = Table(
 class Deployment(Base):
     __tablename__ = "deployments"
 
-    id = Column(Integer, autoincrement=True, primary_key=True)
+    id = Column(Integer, autoincrement=True, primary_key=True)    
     image_tag = Column(String(200))
     app_name = Column(String(200), ForeignKey("apps.name"))
     environment = Column(String(4), index=True)
@@ -134,6 +134,10 @@ class Deployment(Base):
     mapped_ports = Column(Text)
     mapped_volumes = Column(Text)
 
+    parent_id = Column(Integer, ForeignKey("deployments.id"))
+    parent = relationship("Deployment", remote_side=[id], backref="child")
+    
+    env_vars = relationship("EnvironmentVariable", foreign_keys="EnvironmentVariable.id", cascade="all, delete-orphan")
     hosts = relationship("Host", secondary=deployment_hosts, backref="deployments")
     containers = relationship("Container", backref="deployment")
 
@@ -146,5 +150,19 @@ class Deployment(Base):
             'mapped_ports': ports,
             'mapped_volumes': volumes,
             'hosts': [host.hostname for host in self.hosts],
-            'containers': [c.encode() for c in self.containers]
+            'containers': [c.encode() for c in self.containers],
+            'environment_variables': dict([(p.property_key, p.property_value) for p in self.env_vars])
+        }
+
+class EnvironmentVariable(Base):
+    __tablename__ = "environment_variables"
+
+    id = Column(Integer, ForeignKey("deployments.id"), primary_key=True)
+    property_key = Column(String(100), primary_key=True, index=True)
+    property_value = Column(Text, nullable=False)
+
+    def _encode(self):
+        return {
+            'property_key': self.property_key,
+            'property_value': self.property_value
         }
