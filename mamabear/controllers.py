@@ -4,7 +4,7 @@ from mamabear.model import *
 class HostController(object):
 
     @cherrypy.tools.json_out()
-    def list_hosts(self, hostname=None, type=None):
+    def list_hosts(self, hostname=None):
         if hostname:
             return {
                 'hits': [self.get_host(hostname=hostname)],

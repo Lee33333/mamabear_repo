@@ -1,3 +1,4 @@
+
 from sqlalchemy.sql.expression import func
 from sqlalchemy.orm import relationship, backref, load_only
 from sqlalchemy.ext.declarative import declarative_base
@@ -12,8 +13,7 @@ class Host(Base):
     id = Column(Integer, autoincrement=True, primary_key=True)
     hostname = Column(String(200), index=True)
     port = Column(Integer)
-    type = Column(String(10), nullable=False) # deployment or registry
-
+    
     containers = relationship("Container", backref="host")
 
     @staticmethod
@@ -22,37 +22,38 @@ class Host(Base):
         return h
 
     @staticmethod    
-    def list_query(session, type=None):
+    def list_query(session):
         q = session.query(Host)
-        if type:
-            q = q.filter(Host.type == type)
         return q
 
     @staticmethod
-    def count(session, type=None):
-        q = Host.list_query(session, type)
+    def count(session):
+        q = Host.list_query(session)
         return q.count()
 
     @staticmethod
-    def list(session, type=None):
-        q = Host.list_query(session, type)
+    def list(session):
+        q = Host.list_query(session)
         return [h.encode() for h in q.all()]
-            
+    
     def encode(self):
         return {
             'hostname': self.hostname,
-            'port': self.port,
-            'type': self.type
+            'port': self.port
         }
         
 class Image(Base):
     __tablename__ = "images"
 
-    id = Column(CHAR(64), primary_key=True)
+    id = Column(CHAR(8), primary_key=True)
     tag = Column(String(200), index=True)
-    app_name = Column(String(200), ForeignKey("apps.name"))
+    app_name = Column(String(200), ForeignKey("apps.name"), index=True)
     containers = relationship("Container", backref="image")
-
+            
+    @staticmethod
+    def get(session, image_id):
+        return session.query(Image).get(image_id)
+        
     def encode(self):
         return {
             'id': self.id,
@@ -66,10 +67,20 @@ class Container(Base):
     command = Column(String(200))
     status = Column(String(100), index=True)
     
+    image_ref = Column(String(200), index=True)
+    
     deployment_id = Column(Integer, ForeignKey("deployments.id"))    
-    image_id = Column(CHAR(64), ForeignKey("images.id"))
+    image_id = Column(CHAR(8), ForeignKey("images.id"))
     host_id = Column(Integer, ForeignKey("hosts.id"))        
 
+    @staticmethod
+    def get_by_ref(session, image_ref):
+        return session.query(Container).filter(Container.image_ref == image_ref)
+        
+    @staticmethod
+    def get(session, container_id):
+        return session.query(Container).get(container_id)
+        
     def encode(self):
         return {
             'image': self.image.encode(),
@@ -116,6 +127,7 @@ class Deployment(Base):
     __tablename__ = "deployments"
 
     id = Column(Integer, autoincrement=True, primary_key=True)
+    image_tag = Column(String(200))
     app_name = Column(String(200), ForeignKey("apps.name"))
     environment = Column(String(4), index=True)
     status_endpoint = Column(String(200))

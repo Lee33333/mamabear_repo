@@ -1,9 +1,14 @@
 import docker
 import requests
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 class DockerWrapper(object):
 
-    def __init__(self, docker_host, config):
+    def __init__(self, docker_host, docker_port, config):
+        self.host = docker_host
+        self.port = docker_port
         self._tls_conf = docker.tls.TLSConfig(
             assert_hostname=False,
             client_cert=(
@@ -12,17 +17,21 @@ class DockerWrapper(object):
             ),
             verify=config.get('docker', 'ca_cert'))
         self._client = docker.Client(
-            base_url=docker_host,
+            base_url='https://%s:%s' % (docker_host, docker_port),
             tls=self._tls_conf
         )
 
-    def list_images(self, registry_url, app_name, username, password=None):
+    @staticmethod
+    def list_images(registry_url, app_name, username, password=None):
         url = "%s/repositories/%s/%s/tags" % (registry_url, username, app_name)
+        logging.info("Fetching url: {}".format(url))
         if password:
             r = requests.get(url, auth=(username, password))
         else:
             r = requests.get(url)
-        return r.json()
+        if r.ok:
+            return r.json()
+        r.raise_for_status()
         
     def ps(self):
         return self._client.containers()
