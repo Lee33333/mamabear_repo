@@ -13,7 +13,7 @@ class Host(Base):
     id = Column(Integer, autoincrement=True, primary_key=True)
     hostname = Column(String(200), index=True)
     port = Column(Integer)
-    
+    asg_name = Column(String(200), ForeignKey("aws_asgs.group_name"), index=True)
     containers = relationship("Container", backref="host")
 
     @staticmethod
@@ -166,3 +166,14 @@ class EnvironmentVariable(Base):
             'property_key': self.property_key,
             'property_value': self.property_value
         }
+
+class AWSAutoScalingGroup(Base):
+    """
+    Auto-update available hosts using amazon's autoscaling
+    group feature
+    """
+    __tablename__ = "aws_asgs"
+
+    group_name = Column(String(200), primary_key=True)
+
+    hosts = relationship("Host", backref="auto_scaling_group")
