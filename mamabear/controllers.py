@@ -133,3 +133,33 @@ class AppController(object):
                 
         cherrypy.response.status = 400
         return {'error': 'malformed request, request body must include deployment data with {}'.format(Deployment.required_keys)}
+
+    @cherrypy.tools.json_in()
+    @cherrypy.tools.json_out()
+    def add_deployment_hosts(self, name, image_tag, environment):
+        data = cherrypy.request.json
+        if 'hosts' in data:
+            deployment = Deployment.get_by_app(
+                cherrypy.request.db, name, image_tag=image_tag, environment=environment)
+            if deployment:
+                for name in data['hosts']:
+                    host = Host.get_by_name(cherrypy.request.db, name)
+                    if host:
+                        deployment.hosts.append(host)                        
+                    else:
+                        cherrypy.response.status = 404
+                        return {'error': "Host with name {} not found".format(name)}
+                try:
+                    cherrypy.request.db.add(deployment)
+                    cherrypy.request.db.commit()
+                    return {'added': data['hosts']}
+                except:
+                    cherrypy.request.db.rollback()
+                    traceback.print_exc()
+                    return {'error': 'internal server error'}
+            else:
+                cherrypy.response.status = 404
+                return {'error': 'Deployment with configuration ({}:{},{}) not found'.format(name, image_tag, environment)}
+                
+        cherrypy.response.status = 400        
+        return {'error': 'malformed request, body must include hosts'}

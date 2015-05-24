@@ -35,6 +35,7 @@ def get_app():
         m.connect('images', '/app/{name}/images', action='app_images', conditions=dict(method=['GET']))
         m.connect('deployments', '/app/{name}/deployments', action='app_deployments', conditions=dict(method=['GET']))
         m.connect('deployments_new', '/app/{name}/deployments', action='add_app_deployment', conditions=dict(method=['POST']))
+        m.connect('deployment_hosts', '/app/{name}/deployments/{image_tag}/{environment}', action='add_deployment_hosts', conditions=dict(method=['PUT']))
         
     server_cfg = {
         'server.socket_host': '0.0.0.0',
