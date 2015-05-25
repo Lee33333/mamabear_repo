@@ -15,7 +15,7 @@
 
     <!-- Custom styles for this template -->
     <link href="./bootstrap/css/dashboard.css" rel="stylesheet">
-    <link href="./fuelux/css/fuelux.css" rel="stylesheet">
+    <link href="./datatables/css/jquery.dataTables.min.css" rel="stylesheet">
     
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -30,18 +30,18 @@
             'jquery': '../vendor/js/jquery-2.1.4.min',
             'knockout': '../vendor/js/knockout-3.3.0.min',
             'pager': '../vendor/js/pager.min',
-            'fuelux': '../fuelux/js/fuelux.min'
+            'datatables': '../datatables/js/jquery.dataTables.min'
         },
             shim: {
                 'bootstrap': ['jquery'],
-                'fuelux': ['bootstrap'],
+                'datatables': ['jquery'],
                 'knockout': ['jquery'],
                 'pager': ['knockout']
             }
         });
     </script>
     <script>
-        require(['appViewModel', 'bootstrap']);
+        require(['appViewModel', 'bootstrap', 'datatables']);
     </script>
   </head>
 
@@ -69,7 +69,7 @@
       </div>
     </nav>
 
-    <div class="container-fluid fuelux">
+    <div class="container-fluid">
       <div class="row">
         <div class="col-sm-3 col-md-2 sidebar">
           <ul class="nav nav-sidebar">
@@ -79,15 +79,18 @@
           </ul>
         </div>
         
-        <div data-bind="page: {id: 'deployments', source: './templates/deployments.html', withOnShow: bindDeploymentsRepeater}" class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+        <div data-bind="page: {id: 'deployments', source: './templates/deployments.html', sourceLoaded: bindDeployments}"
+             class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
           <h1 class="page-header">Deployments</h1>
         </div>
 
-        <div data-bind="page: {id: 'apps', source: './templates/apps.html', withOnShow: bindAppsRepeater}" class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+        <div data-bind="page: {id: 'apps', source: './templates/apps.html', sourceLoaded: bindApps}"
+             class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
           <h1 class="page-header">Apps</h1>
         </div>
         
-        <div data-bind="page: {id: 'hosts', source: './templates/hosts.html', withOnShow: bindHostsRepeater}" class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">          
+        <div data-bind="page: {id: 'hosts', source: './templates/hosts.html', sourceLoaded: bindHosts}"
+             class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">          
         </div> <!-- end hosts page -->
         
       </div>
