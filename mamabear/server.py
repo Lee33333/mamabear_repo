@@ -7,6 +7,7 @@ import getopt
 import cherrypy
 import ConfigParser
 
+from mamabear.worker import Worker
 from mamabear.controllers import *
 from mamabear.plugin import SAEnginePlugin, SATool
 
@@ -24,10 +25,14 @@ def get_app():
     d = cherrypy.dispatch.RoutesDispatcher()
     d.connect(name='mamabear-hosts', route="/mamabear", controller=HostController)
     d.connect(name='mamabear-apps', route="/mamabear", controller=AppController)
-
+    d.connect(name='mamabear-deployments', route='/mamabear', controller=DeploymentController)
+    
     with d.mapper.submapper(path_prefix='/mamabear/v1', controller='mamabear-hosts') as m:
         m.connect('hosts', '/host', action='list_hosts', conditions=dict(method=['GET']))
         m.connect('hosts_new', '/host', action='add_host', conditions=dict(method=['POST']))
+
+    with d.mapper.submapper(path_prefix='/mamabear/v1', controller='mamabear-deployments') as m:
+        m.connect('deployments_all', '/deployment', action='list_deployments', conditions=dict(method=['GET']))
 
     with d.mapper.submapper(path_prefix='/mamabear/v1', controller='mamabear-apps') as m:
         m.connect('apps', '/app', action='list_apps', conditions=dict(method=['GET']))
@@ -68,6 +73,9 @@ def get_app():
 def start(config):
     app = get_app()
 
+    AppController.worker = Worker(config)
+    HostController.worker = Worker(config)
+    
     connection_string = "mysql://%s:%s@%s/%s" % (
         config.get('mysql', 'user'),
         config.get('mysql', 'passwd'),

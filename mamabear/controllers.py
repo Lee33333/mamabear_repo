@@ -46,6 +46,11 @@ class HostController(object):
                     
             host = Host.create(cherrypy.request.db, data['host'])
             if host:
+                try:
+                    self.worker.update_containers(cherrypy.request.db, host)
+                except Exception as e:
+                    return {'warn': "Host unreachable"}
+                    
                 cherrypy.response.status = 201
                 return {'created':host.hostname}
             else:
@@ -100,6 +105,11 @@ class AppController(object):
                     
             app = App.create(cherrypy.request.db, data['app']['name'])
             if app:
+                try:
+                    self.worker.update_images(cherrypy.request.db, app)
+                except Exception as e:
+                    return {'warn': "No images for app in registry"}
+                    
                 cherrypy.response.status = 201
                 return {'created':app.name}
             else:
@@ -125,6 +135,13 @@ class AppController(object):
                     
             deployment = Deployment.create(cherrypy.request.db, d)
             if deployment:
+                try:
+                    self.worker.update_images(cherrypy.request.db, App.get(cherrypy.request.db, app))
+                    self.worker.update_deployment_containers(cherrypy.request.db, deployment)
+                except Exception as e:
+                    print e
+                    return {'warn': "Failed updating images and running containers"}
+                    
                 cherrypy.response.status = 201
                 return {'created':"({}:{},{})".format(deployment.app_name, deployment.image_tag, deployment.environment)}
             else:
@@ -163,3 +180,14 @@ class AppController(object):
                 
         cherrypy.response.status = 400        
         return {'error': 'malformed request, body must include hosts'}
+
+class DeploymentController(object):
+
+    @cherrypy.tools.json_out()
+    def list_deployments(self, app_name=None, image_tag=None, environment=None,
+                         order='asc', sort_field='app_name', limit=10, offset=0):
+        return {
+            'hits': Deployment.list(cherrypy.request.db, app_name=app_name, image_tag=image_tag, environment=environment,
+                                    order=order, sort_field=sort_field, limit=limit, offset=offset),
+            'total': Deployment.count(cherrypy.request.db, app_name=app_name, image_tag=image_tag, environment=environment)
+        }

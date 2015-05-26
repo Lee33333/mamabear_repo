@@ -62,6 +62,7 @@ class Host(Base):
         encoded = {
             'hostname': self.hostname,
             'port': self.port,
+            'container_count': len(self.containers),
             'containers': [c.encode() for c in self.containers]
         }
         if self.asg_name:
@@ -108,12 +109,14 @@ class Container(Base):
         return session.query(Container).get(container_id)
         
     def encode(self):
-        return {
-            'image': self.image.encode(),
+        result = {
             'host': self.host.hostname,
             'status': self.status,
             'command': self.command
         }
+        if self.image:
+            result['image'] = self.image.encode()
+        return result
         
 class App(Base):
     __tablename__ = "apps"
@@ -173,7 +176,7 @@ class Deployment(Base):
     __tablename__ = "deployments"
 
     id = Column(Integer, autoincrement=True, primary_key=True)    
-    image_tag = Column(String(200), nullable=False)
+    image_tag = Column(String(200), nullable=False, index=True)
     app_name = Column(String(200), ForeignKey("apps.name"), index=True, nullable=False)
     environment = Column(String(4), index=True, nullable=False)
     status_endpoint = Column(String(200), nullable=False)
@@ -188,7 +191,37 @@ class Deployment(Base):
     containers = relationship("Container", backref="deployment")
 
     required_keys = ['image_tag', 'app_name', 'environment', 'status_endpoint']
-    
+
+    @staticmethod    
+    def list_query(session, app_name=None, image_tag=None, environment=None):
+        q = session.query(Deployment)
+        if app_name:
+            q = q.filter(Deployment.app_name.like('%'+app_name+'%'))
+        if image_tag:
+            q = q.filter(Deployment.image_tag.like('%'+image_tag+'%'))
+        if environment:
+            q = q.filter(Deployment.environment.like('%'+environment+'%'))            
+        return q
+
+    @staticmethod
+    def count(session, app_name=None, image_tag=None, environment=None):
+        q = Deployment.list_query(session, app_name=app_name, image_tag=image_tag, environment=environment)
+        return q.count()
+
+    @staticmethod
+    def list(session, app_name=None, image_tag=None, environment=None,
+             order='asc', sort_field='app_name', limit=10, offset=0):
+        q = Deployment.list_query(session, app_name=app_name, image_tag=image_tag, environment=environment)
+
+        if order == 'asc':
+            q = q.order_by(asc(getattr(Deployment, sort_field)))
+        else:
+            q = q.order_by(desc(getattr(Deployment, sort_field)))
+            
+        q = q.limit(limit).offset(offset)
+
+        return [r.encode() for r in q.all()]
+        
     @staticmethod
     def get_by_app(session, app_name, image_tag=None, environment=None):
         q = session.query(Deployment).filter(Deployment.app_name == app_name)
