@@ -1,5 +1,6 @@
-<h1 class="page-header">Apps</h1>
-<table id="apps_table" class="display" cellspacing="0" width="100%">
+<div data-bind="page: {id: 'all'}">
+  <h1 class="page-header">Apps</h1>
+  <table id="apps_table" class="display" cellspacing="0" width="100%">
   <thead>
     <tr>
       <th>App Name</th>
@@ -7,4 +8,6 @@
       <th>Running Containers</th>
     </tr>
   </thead>
-</table>
+  </table>
+</div>
+<div data-bind="page: {id: '?', source: './templates/appDetail.html', with: app, beforeShow: getApp}"></div>

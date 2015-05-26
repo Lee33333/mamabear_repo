@@ -1,0 +1,34 @@
+<div class="container">
+  <div class="col-sm-5 col-sm-offset-3 col-md-6 col-md-offset-2">
+    <div class="row">
+      <h2>Configure a new deployment</h2>
+      <p>An application deployment consists of an application image (hosted on dockerhub) together with an environment and hosts.</p>
+    </div>
+    <div class="row">
+      <form data-bind="submit: create">
+        <div class="form-group">
+          <label for="inputEnvironment">Set environment</label>
+          <select data-bind="options: envOptions, value: environment", class="form-control" id="inputEnvironment"></select>
+        </div>
+        <div class="form-group">
+          <label for="inputAppName">Choose existing application</label>
+          <select data-bind="options: $root.appsList, value: appName", class="form-control" id="inputAppName"></select>
+        </div>
+        <div class="form-group">
+          <label for="inputImage">Choose existing image</label>
+          <select data-bind="options: imageList, value: imageTag", class="form-control" id="inputImage"></select>
+        </div>        
+        <div class="form-group">
+          <label for="inputEndpoint">Status endpoint</label>
+          <input data-bind="textInput: statusEndpoint" type="text" class="form-control" id="inputEndpoint" placeholder="Status endpoint, eg: /v1/status">
+        </div>
+        <div class="form-group">
+          <label for="inputHosts">Choose deployment hosts</label>
+          <select data-bind="options: $root.hostsList, selectedOptions: hosts", class="form-control" id="inputHosts"></select>
+        </div>        
+        <button type="submit" class="btn btn-primary">Create Deployment</button>
+      </form>
+    </div>
+  </div>
+</div>
+<div>

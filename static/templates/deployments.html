@@ -1,27 +1,15 @@
-<h1 class="page-header">Deployments</h1>
-<table id="deployments_table" class="display" cellspacing="0" width="100%">
-  <thead>
-    <tr>
-      <th>App Name</th>
-      <th>Image Tag</th>
-      <th>Environment</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>sagebear</td>
-      <td>1</td>
-      <td>prod</td>
-    </tr>
-    <tr>
-      <td>sagebear</td>
-      <td>2</td>
-      <td>test</td>
-    </tr>
-    <tr>
-      <td>carebear</td>
-      <td>3</td>
-      <td>test</td>
-    </tr>
-  </tbody>  
-</table>
+<div data-bind="page: {id: 'all'}">
+  <h1 class="page-header">Deployments</h1>
+  <table id="deployments_table" class="display" cellspacing="0" width="100%">
+    <thead>
+      <tr>
+        <th>Deployment</th>
+        <th>App Name</th>
+        <th>Image Tag</th>
+        <th>Environment</th>
+        <th>Status Endpoint</th>
+      </tr>
+    </thead>
+  </table>
+</div>
+<div data-bind="page: {id: '?', source: './templates/deploymentDetail.html', with: deployment, beforeShow: getDeployment}"></div>

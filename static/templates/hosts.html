@@ -1,9 +1,13 @@
-<h1 class="page-header">Hosts</h1>
-<table id="hosts_table" class="display" cellspacing="0" width="100%">
-  <thead>
-    <tr>
-      <th>Host Name</th>
-      <th>Port</th>
-    </tr>
-  </thead>
-</table>
+<div data-bind="page: {id: 'all'}">
+  <h1 class="page-header">Hosts</h1>
+  <table id="hosts_table" class="display" cellspacing="0" width="100%">
+    <thead>
+      <tr>
+        <th>Host Name</th>
+        <th>Port</th>
+        <th>Running Containers</th>
+      </tr>
+    </thead>
+  </table>
+</div>
+<div data-bind="page: {id: '?', source: './templates/hostDetail.html', with: host, beforeShow: getHost}"></div>
