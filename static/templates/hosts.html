@@ -10,4 +10,6 @@
     </thead>
   </table>
 </div>
-<div data-bind="page: {id: '?', source: './templates/hostDetail.html', with: host, beforeShow: getHost}"></div>
+<div data-bind="page: {id: '?', beforeShow: setPage}">  
+  <div data-bind="module: {name: 'host', template: 'hostDetail', data: page}"></div>
+</div>

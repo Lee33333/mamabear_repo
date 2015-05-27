@@ -184,6 +184,14 @@ class AppController(object):
 class DeploymentController(object):
 
     @cherrypy.tools.json_out()
+    def get_deployment(self, app_name, image_tag, environment):
+        deployment = Deployment.get_by_app(cherrypy.request.db, app_name, image_tag=image_tag, environment=environment)
+        if deployment:
+            return deployment.encode()
+        cherrypy.response.status = 404
+        return {'error': 'deployment configuration ({}:{},{}) not found'.format(app_name, image_tag, environment)}
+        
+    @cherrypy.tools.json_out()
     def list_deployments(self, app_name=None, image_tag=None, environment=None,
                          order='asc', sort_field='app_name', limit=10, offset=0):
         return {

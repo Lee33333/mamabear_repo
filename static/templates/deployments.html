@@ -12,4 +12,6 @@
     </thead>
   </table>
 </div>
-<div data-bind="page: {id: '?', source: './templates/deploymentDetail.html', with: deployment, beforeShow: getDeployment}"></div>
+<div data-bind="page: {id: '?', beforeShow: setPage}">  
+  <div data-bind="module: {name: 'deployment', template: 'deploymentDetail', data: page}"></div>
+</div>

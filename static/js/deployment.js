@@ -4,24 +4,28 @@ define([
     'pager',
     'app'
 ], function ($, ko, pager, App) {
-    function Deployment() {
+    function Deployment(page) {        
         var self = this;
         
         self.appName = ko.observable();
         self.imageTag = ko.observable();
         self.environment = ko.observable();
         self.statusEndpoint = ko.observable();
-        self.mappedPorts = ko.observableArray([]);
+        self.mappedPorts = ko.observableArray();
         self.mappedVolumes = ko.observableArray([]);
         self.hosts = ko.observableArray([]);
         self.containers = ko.observableArray([]);
-        self.environmentVariables = ko.observable();
-        self.parent = ko.observable();
-        self.imageList = ko.observableArray([]);
+        self.environmentVariables = ko.observable({});
+        self.parent = ko.observable('');
+        self.imageList = ko.observableArray([]);        
         
         self.envOptions = ko.observableArray([
             'test', 'prod'
         ]);
+
+        self.deploymentPath = ko.computed(function() {
+            return '../mamabear/v1/deployment/'+self.appName()+'/'+self.imageTag()+'/'+self.environment();
+        });
         
         self.apiPath = ko.computed(function() {
             return '../mamabear/v1/app/'+self.appName()+'/deployments';
@@ -37,22 +41,56 @@ define([
         
         self.appName.subscribe(function (newName) {
             if (newName) {
-                $.getJSON(self.appImagesPath(), function(data) {
-                    if (data) {
-                        self.imageList.removeAll();
-                        $.each(data[newName]['images'], function(image, i) {
-                            self.imageList.push(image);
-                        });
-                    }
-                })
+                self.appName(newName);
+                self.updateImageList(function() {});
             }
         });
+
+        self.updateImageList = function(callback) {
+            $.getJSON(self.appImagesPath(), function(data) {
+                if (data) {
+                    self.imageList.removeAll();
+                    $.each(data[self.appName()]['images'], function(i, image) {
+                        self.imageList.push(image.tag);
+                    });
+                    callback();
+                }
+            })
+        };
+        
+        self.get = function(callback) {
+            $.getJSON(self.deploymentPath(), function (data) {
+                if (data) {
+                    self.environment(data.environment);
+                    self.imageTag(data.image_tag);
+                    self.appName(data.app_name);
+                    self.hosts(data.hosts);
+                    self.containers(data.containers);
+                    self.environmentVariables(data.environmentVariables);
+                    if (data.hasOwnProperty('mapped_ports') && data.mapped_ports != '') {
+                        self.mappedPorts(data.mapped_ports);
+                    }
+                    if (data.hasOwnProperty('mapped_volumes') && data.mapped_volumes != '') {
+                        self.mappedVolumes(data.mapped_volumes);
+                    }              
+                    if (data.hasOwnProperty('status_endpoint') && data.status_endpoint !== '') {
+                        self.statusEndpoint(data.status_endpoint);
+                    }
+                    if (data.hasOwnProperty('parent') && data.parent !== '') {
+                        self.parent(data.parent);
+                    }
+                    self.updateImageList(function() {
+                        callback(self);
+                    });
+                } else {
+                    console.log("no deployment");
+                }
+            });
+        };
         
         self.updateHosts = function(callback) {
             data = {
-                'hosts': $.map(self.hosts(), function(host, i) {
-                    return host.hostname();
-                })
+                'hosts': self.hosts()
             };
             $.ajax({
                 type: 'PUT',
@@ -104,6 +142,21 @@ define([
                 console.log("Failed creating deployment");
             });
         };
+
+        if (page) {
+            if (page.page.parentPage.id() == 'deployments') {
+                var appName = page.page.id();
+                var imageTag = page.page.route[0];
+                var environment = page.page.route[1];
+
+                self.appName(appName);
+                self.imageTag(imageTag);
+                self.environment(environment);
+                self.get(function(dep) {
+                    console.log('got dep');
+                });
+            }
+        }
     };
 
     return Deployment;

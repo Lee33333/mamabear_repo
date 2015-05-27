@@ -8,10 +8,11 @@ define([
     'container'
 ], function ($, ko, pager, Image, Deployment, Host, Container) {
     
-    function App() {
+    function App(page) {
+
         var self = this;
         var api_path = '../mamabear/v1/app';
-
+               
         self.name = ko.observable();
         self.deployments = ko.observableArray([]);
         self.images = ko.observableArray([]);
@@ -153,6 +154,17 @@ define([
                 }
             });            
         };
+
+        // Initialize from page
+        if (page) {
+            if (page.page.parentPage.id() == 'apps') {
+                var appName = page.page.id();
+                self.name(appName);
+                self.get(function(app) {
+                    console.log('got app'); 
+                });
+            }
+        } 
     }
 
     return App;

@@ -1,12 +1,13 @@
 define([
     'jquery',
     'knockout',
+    'knockoutamdhelpers',
     'pager',
     'datatables',
     'app',
     'deployment',
     'host'
-], function ($, ko, pager, datatables, App, Deployment, Host) {
+], function ($, ko, knockoutamdhelpers, pager, datatables, App, Deployment, Host) {
     $(function () {
         function AppViewModel() {
             var self = this;
@@ -17,22 +18,14 @@ define([
             self.app = ko.observable(new App());
             self.deployment = ko.observable(new Deployment());
             self.host = ko.observable(new Host());
+            self.page = ko.observable();
             
             self.appsList = ko.observableArray([]);
             self.hostsList = ko.observableArray([]);
             self.hostTable = ko.observable();
             self.appsTable = ko.observable();
             self.deploymentsTable = ko.observable();
-            
-            
-            self.getApp = function(page) {
-                var a = new App();
-                a.name(page.page.id());
-                self.app(a);
-                a.get(function(app) {
-                });
-            };
-
+                        
             self.updateLists = function() {
                 self.updateAppsList();
                 self.updateHostsList();
@@ -63,24 +56,10 @@ define([
                     }
                 });
             };
-            
-            self.getDeployment = function(page) {
-                // deployments/<app>/<image_tag>/<environment>
-                var appName = page.page.id();
-                var imageTag = page.page.route[0];
-                var environment = page.page.route[1];
-                var a = new App();
-                a.name(appName);
-                self.app(a);
-                a.get(function(app) {
-                    var d = $.grep(app.deployments(), function(deployment) {
-                        return (deployment.imageTag() === imageTag && deployment.environment() === environment);
-                    });
-                    if (d.length > 0) {
-                        self.deployment(d[0]);
-                    }
-                });                
-            };
+
+            self.setPage = function(page) {
+                self.page(page);
+            }
             
             self.getHost = function(page) {
                 h = new Host();
@@ -89,21 +68,48 @@ define([
                 h.get(function(host) {
                 });
             };
+            
+            self.redrawHostTable = function(page) {
+                if (self.hostTable()) {
+                    self.hostTable().draw();
+                }
+            }
 
-            // FIXME - serverside
+            self.redrawAppsTable = function(page) {
+                if (self.appsTable()) {
+                    self.appsTable().draw();
+                }
+            }
+
+            self.redrawDeploymentsTable = function(page) {
+                if (self.deploymentsTable()) {
+                    self.deploymentsTable().draw();
+                }
+            }
+            
             self.bindDeployments = function(page) {
                 self.deploymentsTable($('#deployments_table').DataTable({
+                    'processing': true,
+                    'serverSide': true,
                     'ajax': function(data, callback, settings) {
+                        params = {
+                            'limit': data.length,
+                            'offset': data.start,
+                            'order': data.order[0].dir
+                        }
+                        if (data.search && data.search.value !== '') {
+                            params['app_name'] = data.search.value;
+                        }                        
                         $.ajax({
                             type: 'GET',
-                            data: data,
+                            data: params,
                             url: self.deploymentsPath
                         }).done(function(json) {
-                            data = $.map(json.hits, function(row, i) {
+                            result = $.map(json.hits, function(row, i) {
                                 row.deployment = row.app_name+':'+row.image_tag+'/'+row.environment;
                                 return row;
                             });
-                            callback({'data':data});
+                            callback({'draw': data.draw, 'data':result, 'recordsTotal': json.total, 'recordsFiltered': json.total});
                         }).fail(function() {
                             console.log("Failed getting deployments");
                         })
@@ -125,18 +131,6 @@ define([
                     ]
                 }));
             }
-
-            self.redrawHostTable = function(page) {
-                self.hostTable().draw();
-            }
-
-            self.redrawAppsTable = function(page) {
-                self.appsTable().draw();
-            }
-
-            self.redrawDeploymentsTable = function(page) {
-                self.deploymentsTable().draw();
-            }
             
             self.bindHosts = function(page) {
                 self.hostTable($('#hosts_table').DataTable({
@@ -152,7 +146,7 @@ define([
                             data: params,
                             url: self.hostsPath
                         }).done(function(json) {
-                            callback({'data': json.hits});
+                            callback({'draw': data.draw, 'data':json.hits, 'recordsTotal': json.total, 'recordsFiltered': json.total});
                         }).fail(function() {
                             console.log("Failed gettings hosts");
                         })
@@ -168,18 +162,21 @@ define([
                 }));
             }
 
-            // FIXME - serverside
             self.bindApps = function(page) {
                 self.appsTable($('#apps_table').DataTable({
+                    'processing': true,
+                    'serverSide': true,
                     'ajax':  function(data, callback, settings) {
+                        params = {};
+                        if (data.search && data.search.value !== '') {
+                            params['name'] = data.search.value;
+                        }
                         $.ajax({
                             type: 'GET',
-                            data: data,
+                            data: params,
                             url: self.appsPath
                         }).done(function(json) {
-                            // FIXME - map data, don't duplicate hits
-                            json.data = json.hits
-                            callback(json);
+                            callback({'draw': data.draw, 'data':json.hits, 'recordsTotal': json.total, 'recordsFiltered': json.total});
                         }).fail(function() {
                             console.log("Failed gettings apps");
                         })
@@ -196,9 +193,12 @@ define([
             }
         }
 
+        ko.amdTemplateEngine.defaultPath = "../templates";
+        ko.amdTemplateEngine.defaultSuffix = ".html";
+        
         viewModel = new AppViewModel();
         pager.extendWithPage(viewModel);
         ko.applyBindings(viewModel);
-        pager.start('deployments/all');        
+        pager.start('deployments/all');
     });
 });

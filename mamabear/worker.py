@@ -38,6 +38,9 @@ class Worker(object):
         self._registry_password = config.get('registry', 'password')            
         self.update_all(db)
 
+    def image_ref(self, app_name, image_tag):
+        return "%s/%s:%s" % (self._registry_user, app_name, image_tag)
+        
     def update_images(self, db, app):        
         logging.info("Fetching images for {} from {} ...".format(app.name, self._registry_url))
         images = DockerWrapper.list_images(
@@ -105,6 +108,16 @@ class Worker(object):
         # Get all running containers
         for host in db.query(Host).all():            
             self.update_containers(db, host)
+
+    def update_deployment_containers(self, db, deployment):
+        image_ref = self.image_ref(deployment.app_name, deployment.image_tag)
+                
+        for deployment_host in deployment.hosts:
+            host_app_containers = [c for c in deployment_host.containers if c.image_ref == image_ref]
+            deployment.containers.extend(host_app_containers)
+                    
+        db.add(deployment)
+        db.commit()
                 
     def update_all(self, db):        
 
@@ -127,13 +140,8 @@ class Worker(object):
                 db.rollback()
                 
             for deployment in app.deployments:
-                image_ref = "%s/%s:%s" % (self._registry_user, app.name, deployment.image_tag)
-                
-                for deployment_host in deployment.hosts:
-                    host_app_containers = [c for c in deployment_host.containers if c.image_ref == image_ref]
-                    deployment.containers.extend(host_app_containers)
-                    
-                db.add(deployment)
-                
-            db.commit()
-                    
+                try:
+                    self.update_deployment_containers(db, deployment)
+                except Exception as e:
+                    logging.error(e)
+                    db.rollback()

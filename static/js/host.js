@@ -5,7 +5,7 @@ define([
     'container',
     'image'
 ], function ($, ko, pager, Container, Image) {
-    function Host() {
+    function Host(page) {
         var self = this;
         var apiPath = '../mamabear/v1/host';
         
@@ -91,6 +91,15 @@ define([
                 }
             });
         };
+
+        if (page) {
+            if (page.page.parentPage.id() == 'hosts') {
+                self.hostname(page.page.id());
+                self.get(function(host) {
+                    console.log('got host');
+                });
+            }
+        }
     };
 
     return Host;

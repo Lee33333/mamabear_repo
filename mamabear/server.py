@@ -33,6 +33,7 @@ def get_app():
 
     with d.mapper.submapper(path_prefix='/mamabear/v1', controller='mamabear-deployments') as m:
         m.connect('deployments_all', '/deployment', action='list_deployments', conditions=dict(method=['GET']))
+        m.connect('deployment', '/deployment/{app_name}/{image_tag}/{environment}', action='get_deployment', conditions=dict(method=['GET']))
 
     with d.mapper.submapper(path_prefix='/mamabear/v1', controller='mamabear-apps') as m:
         m.connect('apps', '/app', action='list_apps', conditions=dict(method=['GET']))
