@@ -32,10 +32,45 @@ class DockerWrapper(object):
         if r.ok:
             return r.json()
         r.raise_for_status()
-        
-    def ps(self):
-        return self._client.containers()
 
+    def _state_from_detail(self, s):
+        if (s['Dead']):
+            return 'dead'
+        elif (s['Paused']):
+            return 'paused'
+        elif (s['Restarting']):
+            return 'restarting'
+        elif (s['Running']):
+            return 'running'
+        else:
+            return 'stopped'
+            
+    def state_of_the_universe(self):
+        """
+        High level function to list all containers,
+        and cherry picked detail information 
+        """
+        universe = []
+        for info in self.ps(all=True):
+            cid = info['Id']
+            detail = self.inspect(cid)
+            universe.append({
+                'id': cid,
+                'image_id': detail['Image'],
+                'image_ref': info['Image'],
+                'command': ' '.join(detail['Config']['Cmd']),
+                'state': self._state_from_detail(detail['State']),
+                'started_at': detail['State']['StartedAt'],
+                'finished_at': detail['State']['FinishedAt']
+            })
+        return universe
+            
+    def ps(self, **kwargs):
+        return self._client.containers(**kwargs)
+
+    def inspect(self, container_id):
+        return self._client.inspect_container(container_id)
+        
     def logs(self, container_id, stderr=False, stdout=False, stream=False, tail=10):
         return self._client.logs(
             container_id, stderr=stderr, stdout=stdout, stream=stream, tail=tail)

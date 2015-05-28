@@ -126,8 +126,16 @@ class Container(Base):
 
     id = Column(CHAR(64), primary_key=True)
     command = Column(String(200))
-    status = Column(String(100), index=True)
     
+    # This will be the endpoint status, via deployment
+    status = Column(String(100), index=True)
+
+    # This is container status itself
+    started_at = Column(DateTime)
+    finished_at = Column(DateTime)
+    # One of 'running', 'stopped', 'paused', 'restarting', or 'dead'
+    state = Column(String(100), index=True)
+                   
     image_ref = Column(String(200), index=True)
     
     deployment_id = Column(Integer, ForeignKey("deployments.id"))    
