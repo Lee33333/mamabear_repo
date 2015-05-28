@@ -11,13 +11,79 @@ define([
         self.imageTag = ko.observable();
         self.environment = ko.observable();
         self.statusEndpoint = ko.observable();
-        self.mappedPorts = ko.observableArray();
+        self.statusPort = ko.observable();
+        self.mappedPorts = ko.observableArray([]);
         self.mappedVolumes = ko.observableArray([]);
         self.hosts = ko.observableArray([]);
+        self.links = ko.observableArray([]);
+        self.volumes = ko.observableArray([]);
         self.containers = ko.observableArray([]);
         self.environmentVariables = ko.observable({});
         self.parent = ko.observable('');
         self.imageList = ko.observableArray([]);        
+
+        self.environmentVariablesString = ko.observable('');
+        self.mappedPortsString = ko.observable('');
+        self.mappedVolumesString = ko.observable('');
+
+        self.serialize = ko.computed(function() {
+            var s = {
+                'environment': self.environment(),
+                'app_name': self.appName(),
+                'image_tag': self.imageTag(),
+                'status_endpoint': self.statusEndpoint(),
+                'status_port': self.statusPort(),
+                'mapped_ports': self.mappedPorts(),
+                'mapped_volumes': self.mappedVolumes(),
+                'environment_variables': self.environmentVariables()
+            };
+
+            if (self.links() && self.links().length > 0) {
+                s['links'] = [];
+                $.each(self.links(), function(i, link) {
+                    if (link.includes(':')) {
+                        var pair = link.split(':');
+                        s['links'].push({
+                            'app_name': pair[0],
+                            'image_tag': pair[1]
+                        });
+                    }
+                });
+            }
+
+            if (self.volumes() && self.volumes().length > 0) {
+                s['volumes'] = [];
+                $.each(self.volumes(), function(i, volume) {
+                    if (volume.includes(':')) {
+                        var pair = volume.split(':');
+                        s['volumes'].push({
+                            'app_name': pair[0],
+                            'image_tag': pair[1]
+                        });
+                    }
+                });
+            }
+            
+            if (self.environmentVariablesString() && self.environmentVariablesString() !== '') {                
+                $.each(self.environmentVariablesString().split(','), function(i, kv) {
+                    var pair = kv.split('=');
+                    s['environment_variables'][$.trim(pair[0])] = $.trim(pair[1]);
+                });                
+            }            
+            if (self.mappedPortsString() && self.mappedPortsString() !== '') {
+                $.each(self.mappedPortsString().split(','), function(i, mapped) {
+                    s['mapped_ports'].push(mapped);
+                });
+                s['mapped_ports'] = $.unique(s['mapped_ports']);
+            }
+            if (self.mappedVolumesString() && self.mappedVolumesString() !== '') {
+                $.each(self.mappedVolumesString().split(','), function(i, mapped) {
+                    s['mapped_volumes'].push(mapped);
+                });
+                s['mapped_volumes'] = $.unique(s['mapped_volumes']);
+            }
+            return s;
+        });
         
         self.envOptions = ko.observableArray([
             'test', 'prod'
@@ -105,30 +171,9 @@ define([
         
         self.create = function() {
             data = {
-                'deployment': {
-                    'app_name': self.appName(),
-                    'image_tag': self.imageTag(),
-                    'environment': self.environment(),
-                    'hosts': self.hosts(),
-                    'status_endpoint': self.statusEndpoint()
-                }
+                'deployment': self.serialize()
             };
 
-            if (self.mappedPorts() && self.mappedPorts().length > 0) {
-                data['deployment']['mapped_ports'] = self.mappedPorts();
-            }
-            if (self.mappedVolumes() && self.mappedVolumes().length > 0) {
-                data['deployment']['mapped_volumes'] = self.mappedVolumes();
-            }
-            if (self.environmentVariables()) {
-                data['deployment']['environment_variables'] = self.environmentVariables();
-            }
-            
-            if (self.parent()) {
-                data['deployment']['parent'] = self.parent();
-            };
-
-            console.log(data);
             $.ajax({
                 type: 'POST',
                 data: ko.toJSON(data),
@@ -152,7 +197,7 @@ define([
                 self.appName(appName);
                 self.imageTag(imageTag);
                 self.environment(environment);
-                self.get(function(dep) {
+                self.get(function(dep) {                    
                     console.log('got dep');
                 });
             }

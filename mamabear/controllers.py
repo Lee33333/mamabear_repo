@@ -199,3 +199,13 @@ class DeploymentController(object):
                                     order=order, sort_field=sort_field, limit=limit, offset=offset),
             'total': Deployment.count(cherrypy.request.db, app_name=app_name, image_tag=image_tag, environment=environment)
         }
+
+class ImageController(object):
+
+    @cherrypy.tools.json_out()
+    def list_images(self, app_name=None, image_tag=None, order='asc', sort_field='app_name', limit=10, offset=0):
+        return {
+            'hits': Image.list(cherrypy.request.db, app_name=app_name, image_tag=image_tag, order=order,
+                               sort_field=sort_field, limit=limit, offset=offset),
+            'total': Image.count(cherrypy.request.db, app_name=app_name, image_tag=image_tag)
+        }

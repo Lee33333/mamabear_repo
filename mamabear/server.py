@@ -26,10 +26,14 @@ def get_app():
     d.connect(name='mamabear-hosts', route="/mamabear", controller=HostController)
     d.connect(name='mamabear-apps', route="/mamabear", controller=AppController)
     d.connect(name='mamabear-deployments', route='/mamabear', controller=DeploymentController)
+    d.connect(name='mamabear-images', route='/mamabear', controller=ImageController)
     
     with d.mapper.submapper(path_prefix='/mamabear/v1', controller='mamabear-hosts') as m:
         m.connect('hosts', '/host', action='list_hosts', conditions=dict(method=['GET']))
         m.connect('hosts_new', '/host', action='add_host', conditions=dict(method=['POST']))
+
+    with d.mapper.submapper(path_prefix='/mamabear/v1', controller='mamabear-images') as m:
+        m.connect('images', '/image', action='list_images', conditions=dict(method=['GET']))
 
     with d.mapper.submapper(path_prefix='/mamabear/v1', controller='mamabear-deployments') as m:
         m.connect('deployments_all', '/deployment', action='list_deployments', conditions=dict(method=['GET']))

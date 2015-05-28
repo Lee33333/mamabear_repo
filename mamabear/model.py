@@ -79,9 +79,44 @@ class Image(Base):
     @staticmethod
     def get(session, image_id):
         return session.query(Image).get(image_id)
-        
+
+    @staticmethod
+    def find_by_name_and_tag(session, app_name, image_tag):
+        q = Image.list_query(app_name=app_name, image_tag=image_tag)
+        if q.count() > 0:
+            return q.limit(1).one()
+            
+    @staticmethod    
+    def list_query(session, app_name=None, image_tag=None):
+        q = session.query(Image)
+        if app_name:
+            q = q.filter(Image.app_name.like('%'+app_name+'%'))
+        if image_tag:
+            q = q.filter(Image.tag.like('%'+image_tag+'%'))
+        return q
+
+    @staticmethod
+    def count(session, app_name=None, image_tag=None):
+        q = Image.list_query(session, app_name=app_name, image_tag=image_tag)
+        return q.count()
+
+    @staticmethod
+    def list(session, app_name=None, image_tag=None, order='asc',
+             sort_field='app_name', limit=10, offset=0):
+        q = Image.list_query(session, app_name=app_name, image_tag=image_tag)
+
+        if order == 'asc':
+            q = q.order_by(asc(getattr(Image, sort_field)))
+        else:
+            q = q.order_by(desc(getattr(Image, sort_field)))
+            
+        q = q.limit(limit).offset(offset)
+
+        return [r.encode() for r in q.all()]
+
     def encode(self):
         return {
+            'app_name': self.app_name,
             'id': self.id,
             'tag': self.tag
         }
@@ -171,6 +206,16 @@ deployment_hosts = Table(
     Column('host_id', Integer, ForeignKey("hosts.id")),
     Column('deployment_id', Integer, ForeignKey("deployments.id")))
 
+deployment_links = Table(
+    'deployment_links', Base.metadata,
+    Column('image_id', CHAR(8), ForeignKey("images.id")),
+    Column('deployment_id', Integer, ForeignKey("deployments.id")))
+
+deployment_volumes = Table(
+    'deployment_volumes', Base.metadata,
+    Column('image_id', CHAR(8), ForeignKey("images.id")),
+    Column('deployment_id', Integer, ForeignKey("deployments.id")))
+
 class Deployment(Base):
     __tablename__ = "deployments"
 
@@ -179,6 +224,7 @@ class Deployment(Base):
     app_name = Column(String(200), ForeignKey("apps.name"), index=True, nullable=False)
     environment = Column(String(4), index=True, nullable=False)
     status_endpoint = Column(String(200), nullable=False)
+    status_port = Column(Integer)
     mapped_ports = Column(Text)
     mapped_volumes = Column(Text)
 
@@ -188,7 +234,10 @@ class Deployment(Base):
     env_vars = relationship("EnvironmentVariable", foreign_keys="EnvironmentVariable.id", cascade="all, delete-orphan")
     hosts = relationship("Host", secondary=deployment_hosts, backref="deployments")
     containers = relationship("Container", backref="deployment")
-
+    
+    links = relationship("Image", secondary=deployment_links)
+    volumes = relationship("Image", secondary=deployment_volumes) 
+    
     required_keys = ['image_tag', 'app_name', 'environment', 'status_endpoint']
 
     @staticmethod    
@@ -241,12 +290,29 @@ class Deployment(Base):
                 environment=data['environment'],
                 status_endpoint=data['status_endpoint']
             )
-            if 'mapped_ports' in data:
+            if 'status_port' in data:
+                d.status_port = data['status_port']
+                
+            if 'links' in data:
+                for link in data['links']:
+                    image = Image.find_by_name_and_tag(
+                        session, link['app_name'], link['image_tag'])
+                    if image:
+                        d.links.append(image)
+                        
+            if 'volumes' in data:
+                for vol in data['volumes']:
+                    image = Image.find_by_name_and_tag(
+                        session, link['app_name'], link['image_tag'])
+                    if image:
+                        d.volumes.append(image)
+                        
+            if 'mapped_ports' in data and len(data['mapped_ports']) > 0:
                 # FIXME: do some validation of structure here
-                d.mapped_ports = data['mapped_ports']
-            if 'mapped_volumes' in data:
+                d.mapped_ports = ','.join(data['mapped_ports'])
+            if 'mapped_volumes' in data and len(data['mapped_volumes']) > 0:
                 # FIXME: do some validation of structure here
-                d.mapped_volumes = data['mapped_volumes']
+                d.mapped_volumes = ','.join(data['mapped_volumes'])
             if 'parent' in data:
                 d.parent_id = data['parent']
             if 'environment_variables' in data:
@@ -277,9 +343,12 @@ class Deployment(Base):
             'image_tag': self.image_tag,
             'app_name': self.app_name,
             'status_endpoint': self.status_endpoint,
+            'status_port': self.status_port,
             'mapped_ports': ports,
             'mapped_volumes': volumes,
             'hosts': [host.hostname for host in self.hosts],
+            'links': [image.encode() for image in self.links],
+            'volumes': [image.encode() for image in self.volumes],
             'containers': [c.encode() for c in self.containers],
             'environment_variables': dict([(p.property_key, p.property_value) for p in self.env_vars])
         }

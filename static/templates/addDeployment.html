@@ -17,10 +17,34 @@
         <div class="form-group">
           <label for="inputImage">Choose existing image</label>
           <select data-bind="options: imageList, value: imageTag", class="form-control" id="inputImage"></select>
-        </div>        
+        </div>
+        <div class="form-group">
+          <label for="inputAppLinks">Choose existing applications to link (--link)</label>
+          <select data-bind="options: $root.imageList, selectedOptions: links", multiple="true", class="form-control" id="inputAppLinks"></select>
+        </div>
+        <div class="form-group">
+          <label for="inputAppVolumes">Choose existing applications to mount volumes from (--volumes-from)</label>
+          <select data-bind="options: $root.imageList, selectedOptions: volumes", multiple="true", class="form-control" id="inputAppVolumes"></select>
+        </div>  
         <div class="form-group">
           <label for="inputEndpoint">Status endpoint</label>
-          <input data-bind="textInput: statusEndpoint" type="text" class="form-control" id="inputEndpoint" placeholder="Status endpoint, eg: /v1/status">
+          <input data-bind="value: statusEndpoint" type="text" class="form-control" id="inputEndpoint" placeholder="Status endpoint, eg: /v1/status">
+        </div>
+        <div class="form-group">
+          <label for="inputEndpointPort">Status port</label>
+          <input data-bind="value: statusPort" type="text" class="form-control" id="inputEndpointPort" placeholder="Status endpoint port, eg: 9001">
+        </div>
+        <div class="form-group">
+          <label for="inputEnvironmentVariables">Environment Variables (-e)</label>
+          <textarea data-bind="value: environmentVariablesString" class="form-control" id="inputEnvironmentVariables" placeholder="KEY1=VALUE1,KEY2=VALUE2,..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="inputMappedPorts">Mapped Ports (-p)</label>
+          <textarea data-bind="value: mappedPortsString" class="form-control" rows="3" id="inputMappedPorts" placeholder="containerPortA:hostPortA, containerPortB:hostPortB, ..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="inputMappedVolumes">Mapped Volumes (-v)</label>
+          <textarea data-bind="value: mappedVolumesString" class="form-control" rows="3" id="inputMappedVolumes" placeholder="containerVolumeA:hostPortA, containerPortB:hostPortB, ..."></textarea>
         </div>
         <div class="form-group">
           <label for="inputHosts">Choose deployment hosts</label>

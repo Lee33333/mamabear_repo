@@ -13,6 +13,7 @@ define([
             var self = this;
             self.hostsPath = '../mamabear/v1/host';
             self.appsPath = '../mamabear/v1/app';
+            self.imagesPath = '../mamabear/v1/image';
             self.deploymentsPath = '../mamabear/v1/deployment';
 
             self.app = ko.observable(new App());
@@ -22,6 +23,7 @@ define([
             
             self.appsList = ko.observableArray([]);
             self.hostsList = ko.observableArray([]);
+            self.imageList = ko.observableArray([]);
             self.hostTable = ko.observable();
             self.appsTable = ko.observable();
             self.deploymentsTable = ko.observable();
@@ -29,6 +31,7 @@ define([
             self.updateLists = function() {
                 self.updateAppsList();
                 self.updateHostsList();
+                self.updateImageList();
             };
             
             self.updateAppsList = function() {
@@ -57,6 +60,23 @@ define([
                 });
             };
 
+            self.updateImageList = function() {
+                $.getJSON(self.imagesPath, function(data) {
+                    if (data) {
+                        self.imageList.removeAll();
+                        return $.each(data.hits, function(i, hit) {
+                            self.imageList.push(hit.app_name+':'+hit.tag);
+                        });
+                    } else {
+                        console.log("Error listing images");
+                    }
+                });
+            };
+
+            self.bindTagsInput = function(page) {
+                $('#inputMappedPorts').tagsinput();
+            }
+            
             self.setPage = function(page) {
                 self.page(page);
             }
