@@ -1,4 +1,7 @@
 import logging
+from dateutil import tz
+from dateutil import parser
+from datetime import datetime
 from mamabear.model import *
 from mamabear.docker_wrapper import DockerWrapper
 from sqlalchemy import create_engine
@@ -73,35 +76,32 @@ class Worker(object):
         wrapper = DockerWrapper(host.hostname, host.port, self._config)
         previous_containers = [c for c in host.containers]
         host_containers = set()
-                
-        for container_info in wrapper.ps():                
-            container = Container.get(db, container_info['Id'])
+
+        # TODO: check health url too
+        for info in wrapper.state_of_the_universe():
+            container = Container.get(db, info['id'])
             if container:
-                # update status
-                container.status = container_info['Status']
+                container.state = info['state']
+                container.finished_at = parser.parse(info['finished_at']).astimezone(tz.tzlocal()).replace(tzinfo=None)
                 db.add(container)
-                host_containers.add(container.id)
             else:
-                # create new container
+                # new container
+                image_layer = info['image_id'][0:8]
+                image = Image.get(db, image_layer)
                 container = Container(
-                    id=container_info['Id'],
-                    command=container_info['Command'],
-                    status=container_info['Status'],
-                    image_ref=container_info['Image']
+                    id=info['id'],
+                    command=info['command'],
+                    image_ref=info['image_ref'],
+                    state = info['state'],
+                    started_at = parser.parse(info['started_at']).astimezone(tz.tzlocal()).replace(tzinfo=None),
+                    finished_at = parser.parse(info['finished_at']).astimezone(tz.tzlocal()).replace(tzinfo=None)
                 )
-                host_containers.add(container.id)
+                if image:
+                    container.image = image
                 host.containers.append(container)
                 db.add(container)
                 db.add(host)
-                    
-        # Manage containers dropping off the list
-        for previous_container in previous_containers:
-            if not previous_container.id in host_containers:
-                logging.info(
-                    "Previously running container {} not found, setting status to DONE".format(previous_container.id))
-                previous_container.status = "DONE"
-                db.add(previous_container)
-                
+
         db.commit()
                         
     def update_all_containers(self, db):
@@ -120,13 +120,6 @@ class Worker(object):
         db.commit()
                 
     def update_all(self, db):        
-
-        logging.info("Updating container information")
-        try:
-            self.update_all_containers(db)
-        except Exception as e:
-            logging.error(e)
-            db.rollback()
         
         apps = db.query(App).all()
         for app in apps:
@@ -145,3 +138,10 @@ class Worker(object):
                 except Exception as e:
                     logging.error(e)
                     db.rollback()
+                    
+        logging.info("Updating container information")
+        try:
+            self.update_all_containers(db)
+        except Exception as e:
+            logging.error(e)
+            db.rollback()
