@@ -143,12 +143,13 @@ class Worker(object):
                 image = Image.get(db, image_layer)
                 container = Container(
                     id=info['id'],
-                    command=info['command'],
                     image_ref=info['image_ref'],
                     state = info['state'],
                     started_at = parser.parse(info['started_at']).astimezone(tz.tzlocal()).replace(tzinfo=None),
                     finished_at = parser.parse(info['finished_at']).astimezone(tz.tzlocal()).replace(tzinfo=None)
                 )
+                if 'command' in info:
+                    container.command = info['command']
                 if image:
                     container.image = image
                 host.containers.append(container)
