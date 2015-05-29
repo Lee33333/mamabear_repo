@@ -254,7 +254,7 @@ class Deployment(Base):
     required_keys = ['image_tag', 'app_name', 'environment', 'status_endpoint']
 
     def name(self):
-        return "%s:$s, %s" % (self.app_name, self.image_tag, self.environment)
+        return "%s:%s, %s" % (self.app_name, self.image_tag, self.environment)
         
     @staticmethod    
     def list_query(session, app_name=None, image_tag=None, environment=None):

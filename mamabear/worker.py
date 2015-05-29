@@ -1,4 +1,5 @@
 import logging
+import requests
 from dateutil import tz
 from dateutil import parser
 from datetime import datetime
@@ -79,8 +80,7 @@ class Worker(object):
                 
     def update_deployment_containers(self, db, deployment):
         """
-        Update app status and container state for all
-        containers on the deployment's configured hosts.
+        Update container state for all containers on the deployment's configured hosts.
         """
         for host in deployment.hosts:
             logging.info("Updating containers for host: {}".format(host.hostname))
@@ -94,6 +94,27 @@ class Worker(object):
         
         db.add(deployment)
         db.commit()
+
+    def update_deployment_status(self, db, deployment):
+        """
+        Update app status for all of the deployment's containers
+        """
+        for container in deployment.containers:
+            if container.state == 'running':
+                status_url = "http://%s:%s/%s" % (
+                    container.host.hostname,
+                    deployment.status_port,
+                    deployment.status_endpoint)
+                r = requests.get(status_url)
+                logging.info("Checking status of {} for container: {}".format(status_url, container.id))
+                if r.ok:
+                    container.status = 'up'
+                    logging.info("App for Container: {} is [up]".format(container.id))
+                else:
+                    container.status = 'down'
+                    logging.info("App for Container: {} is [down]".format(container.id))
+            else:
+                container.status = 'down'
         
     def update_host_containers(self, db, host):
         """
@@ -158,6 +179,7 @@ class Worker(object):
             for deployment in app.deployments:
                 try:
                     self.update_deployment_containers(db, deployment)
+                    self.update_deployment_status(db, deployment)
                 except Exception as e:
                     logging.error(e)
                     db.rollback()
