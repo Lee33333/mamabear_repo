@@ -54,15 +54,17 @@ class DockerWrapper(object):
         for info in self.ps(all=True):
             cid = info['Id']
             detail = self.inspect(cid)
-            universe.append({
+            data = {
                 'id': cid,
                 'image_id': detail['Image'],
-                'image_ref': info['Image'],
-                'command': ' '.join(detail['Config']['Cmd']),
+                'image_ref': info['Image'],        
                 'state': self._state_from_detail(detail['State']),
                 'started_at': detail['State']['StartedAt'],
                 'finished_at': detail['State']['FinishedAt']
-            })
+            }
+            if detail['Config']['Cmd']:
+                data['command'] = ' '.join(detail['Config']['Cmd'])
+            universe.append(data)
         return universe
             
     def ps(self, **kwargs):
