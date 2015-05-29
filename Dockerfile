@@ -7,8 +7,7 @@ RUN apt-get install -y libpython2.7-dev
 RUN apt-get install -y libmysqlclient-dev
 
 RUN mkdir /etc/mamabear/
-COPY mamabear.cfg /etc/mamabear/mamabear.cfg
-RUN rm mamabear.cfg
+COPY /tmp/mamabear.cfg /etc/mamabear/mamabear.cfg
 
 RUN mkdir /var/mamabear/
 ADD . /var/mamabear
