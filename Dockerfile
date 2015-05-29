@@ -9,6 +9,8 @@ RUN apt-get install -y libmysqlclient-dev
 RUN mkdir /etc/mamabear/
 COPY mamabear.cfg /etc/mamabear/mamabear.cfg
 
+VOLUME /etc/docker/certs
+
 RUN mkdir /var/mamabear/
 ADD . /var/mamabear
 RUN chmod ugo+x /var/mamabear/mamabear/server.py

@@ -11,11 +11,11 @@ class DockerWrapper(object):
         self.port = docker_port
         self._tls_conf = docker.tls.TLSConfig(
             assert_hostname=False,
+            verify=False,
             client_cert=(
                 config.get('docker', 'client_cert'),
                 config.get('docker', 'client_key')
-            ),
-            verify=config.get('docker', 'ca_cert'))
+            ))
         self._client = docker.Client(
             base_url='https://%s:%s' % (docker_host, docker_port),
             tls=self._tls_conf
