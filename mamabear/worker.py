@@ -43,49 +43,81 @@ class Worker(object):
 
     def image_ref(self, app_name, image_tag):
         return "%s/%s:%s" % (self._registry_user, app_name, image_tag)
+
+    def containers_for_app_image(self, db, app_name, image_tag):
+        image_ref = self.image_ref(app_name, image_tag)
+        return Container.get_by_ref(db, image_ref)
         
-    def update_images(self, db, app):        
+    def update_app_images(self, db, app):
+        """
+        Update images for app from docker registry. If we know
+        about existing containers that reference a newly fetched
+        image, we attach the containers to the image 
+        """
         logging.info("Fetching images for {} from {} ...".format(app.name, self._registry_url))
         images = DockerWrapper.list_images(
             self._registry_url, app.name, self._registry_user, self._registry_password)
         for image_info in images:
             image = Image.get(db, image_info['layer'])
             if image:
+                logging.info("Found existing image {}, updating tag to {}".format(image_info['layer'], image_info['name']))
                 image.tag = image_info['name']
             else:
+                logging.info("Found new image {}, setting tag to {}".format(image_info['layer'], image_info['name']))
                 image = Image(id=image_info['layer'], tag=image_info['name'])
 
-            #
-            # Link all containers associated with this image
-            #
-            image_ref = "%s/%s:%s" % (self._registry_user, app.name, image.tag)
-            for container in Container.get_by_ref(db, image_ref):
+            for container in self.containers_for_app_image(db, app.name, image.tag):
+                logging.info("Found container {} with state: [{}], associated with image: {}, linking".format(
+                    container.id, container.state, image.id
+                ))
                 image.containers.append(container)
             
             app.images.append(image)
             db.add(image)
             db.add(app)
         db.commit()
-                    
-
+                
     def update_deployment_containers(self, db, deployment):
+        """
+        Update app status and container state for all
+        containers on the deployment's configured hosts.
+        """
         for host in deployment.hosts:
-            self.update_containers(db, host)
-            
-    def update_containers(self, db, host):
-        wrapper = DockerWrapper(host.hostname, host.port, self._config)
-        previous_containers = [c for c in host.containers]
-        host_containers = set()
+            logging.info("Updating containers for host: {}".format(host.hostname))
+            self.update_host_containers(db, host)
 
-        # TODO: check health url too
-        for info in wrapper.state_of_the_universe():
+        for container in self.containers_for_app_image(db, deployment.app_name, deployment.image_tag):
+            logging.info("Found container {} with state: [{}], associated with deployment: {}, linking".format(
+                container.id, container.state, deployment.name()
+            ))
+            deployment.containers.append(container)
+        
+        db.add(deployment)
+        db.commit()
+        
+    def update_host_containers(self, db, host):
+        """
+        For a given host, update the application status and container
+        state for all containers.
+        """
+        wrapper = DockerWrapper(host.hostname, host.port, self._config)
+        host_container_info = []
+        try:
+            host_container_info = wrapper.state_of_the_universe()
+        except Exception as e:
+            logging.error(e)
+            host.status = 'down'
+            db.add(host)
+        
+        for info in host_container_info:
             container = Container.get(db, info['id'])
             if container:
+                logging.info("Found existing container {}, updating state to: {}".format(info['id'], info['state']))
                 container.state = info['state']
                 container.finished_at = parser.parse(info['finished_at']).astimezone(tz.tzlocal()).replace(tzinfo=None)
                 db.add(container)
             else:
-                # new container
+                logging.info("Got new container {}, setting state to: {}".format(info['id'], info['state']))
                 image_layer = info['image_id'][0:8]
                 image = Image.get(db, image_layer)
                 container = Container(
@@ -105,29 +137,20 @@ class Worker(object):
         db.commit()
                         
     def update_all_containers(self, db):
-        # Get all running containers
-        for host in db.query(Host).all():            
-            self.update_containers(db, host)
-
-    def update_deployment_containers(self, db, deployment):
-        image_ref = self.image_ref(deployment.app_name, deployment.image_tag)
-                
-        for deployment_host in deployment.hosts:
-            host_app_containers = [c for c in deployment_host.containers if c.image_ref == image_ref]
-            deployment.containers.extend(host_app_containers)
+        """
+        Updates every app and container state on all hosts
+        """
+        for host in db.query(Host).all():
+            logging.info("Updating containers for host: {}".format(host.hostname))
+            self.update_host_containers(db, host)
                     
-        db.add(deployment)
-        db.commit()
-                
     def update_all(self, db):        
         
         apps = db.query(App).all()
         for app in apps:
             logging.info("Updating image and deployment information for {}".format(app.name))
-            
-            # Get images from configured registry first
             try:
-                self.update_images(db, app)
+                self.update_app_images(db, app)
             except Exception as e:
                 logging.error(e)
                 db.rollback()

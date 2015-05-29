@@ -47,7 +47,7 @@ class HostController(object):
             host = Host.create(cherrypy.request.db, data['host'])
             if host:
                 try:
-                    self.worker.update_containers(cherrypy.request.db, host)
+                    self.worker.update_host_containers(cherrypy.request.db, host)
                 except Exception as e:
                     return {'warn': "Host unreachable"}
                     
@@ -106,7 +106,7 @@ class AppController(object):
             app = App.create(cherrypy.request.db, data['app']['name'])
             if app:
                 try:
-                    self.worker.update_images(cherrypy.request.db, app)
+                    self.worker.update_app_images(cherrypy.request.db, app)
                 except Exception as e:
                     return {'warn': "No images for app in registry"}
                     
@@ -136,7 +136,7 @@ class AppController(object):
             deployment = Deployment.create(cherrypy.request.db, d)
             if deployment:
                 try:
-                    self.worker.update_images(cherrypy.request.db, App.get(cherrypy.request.db, app))
+                    self.worker.update_app_images(cherrypy.request.db, App.get(cherrypy.request.db, app))
                     self.worker.update_deployment_containers(cherrypy.request.db, deployment)
                 except Exception as e:
                     print e

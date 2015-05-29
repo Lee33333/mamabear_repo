@@ -12,9 +12,12 @@ class Host(Base):
     id = Column(Integer, autoincrement=True, primary_key=True)
     hostname = Column(String(200), index=True, unique=True)
     port = Column(Integer)
+    status = Column(String(4), index=True)
     asg_name = Column(String(200), ForeignKey("aws_asgs.group_name"), index=True)
     containers = relationship("Container", backref="host")
 
+    VALID_STATUS = ['up', 'down']
+    
     @staticmethod
     def create(session, data):
         hostname = data.get('hostname')
@@ -22,7 +25,7 @@ class Host(Base):
         asg_name = data.get('asg_name')
 
         if hostname:
-            host = Host(hostname=hostname)
+            host = Host(hostname=hostname, status='up')
             if port:
                 host.port = port
             if asg_name:
@@ -128,13 +131,12 @@ class Container(Base):
     command = Column(String(200))
     
     # This will be the endpoint status, via deployment
-    status = Column(String(100), index=True)
+    status = Column(String(4), index=True)
 
     # This is container status itself
     started_at = Column(DateTime)
     finished_at = Column(DateTime)
-    # One of 'running', 'stopped', 'paused', 'restarting', or 'dead'
-    state = Column(String(100), index=True)
+    state = Column(String(12), index=True)
                    
     image_ref = Column(String(200), index=True)
     
@@ -142,9 +144,12 @@ class Container(Base):
     image_id = Column(CHAR(8), ForeignKey("images.id"))
     host_id = Column(Integer, ForeignKey("hosts.id"))        
 
+    VALID_STATUS = ['up', 'down']
+    VALID_STATES = ['running', 'stopped', 'paused', 'restarting', 'dead']
+    
     @staticmethod
     def get_by_ref(session, image_ref):
-        return session.query(Container).filter(Container.image_ref == image_ref)
+        return session.query(Container).filter(Container.image_ref == image_ref).all()
         
     @staticmethod
     def get(session, container_id):
@@ -248,6 +253,9 @@ class Deployment(Base):
     
     required_keys = ['image_tag', 'app_name', 'environment', 'status_endpoint']
 
+    def name(self):
+        return "%s:$s, %s" % (self.app_name, self.image_tag, self.environment)
+        
     @staticmethod    
     def list_query(session, app_name=None, image_tag=None, environment=None):
         q = session.query(Deployment)
