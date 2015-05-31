@@ -8,23 +8,23 @@
       <form data-bind="submit: create">
         <div class="form-group">
           <label for="inputEnvironment">Set environment</label>
-          <select data-bind="options: envOptions, value: environment", class="form-control" id="inputEnvironment"></select>
+          <select data-bind="options: envOptions, value: environment" class="form-control" id="inputEnvironment"></select>
         </div>
         <div class="form-group">
           <label for="inputAppName">Choose existing application</label>
-          <select data-bind="options: $root.appsList, value: appName", class="form-control" id="inputAppName"></select>
+          <select style="width: 100%" data-bind="value: appName" class="form-control" id="inputAppName"></select>
         </div>
         <div class="form-group">
           <label for="inputImage">Choose existing image</label>
-          <select data-bind="options: imageList, value: imageTag", class="form-control" id="inputImage"></select>
+          <select data-bind="options: imageList, value: imageTag" class="form-control" id="inputImage"></select>
         </div>
         <div class="form-group">
           <label for="inputAppLinks">Choose existing applications to link (--link)</label>
-          <select data-bind="options: $root.imageList, selectedOptions: links", multiple="true", class="form-control" id="inputAppLinks"></select>
+          <select style="width: 100%" data-bind="selectedOptions: links" multiple="true" class="form-control" id="inputAppLinks"></select>
         </div>
         <div class="form-group">
           <label for="inputAppVolumes">Choose existing applications to mount volumes from (--volumes-from)</label>
-          <select data-bind="options: $root.imageList, selectedOptions: volumes", multiple="true", class="form-control" id="inputAppVolumes"></select>
+          <select style="width: 100%" data-bind="selectedOptions: volumes" multiple="true" class="form-control" id="inputAppVolumes"></select>
         </div>  
         <div class="form-group">
           <label for="inputEndpoint">Status endpoint</label>
@@ -48,7 +48,7 @@
         </div>
         <div class="form-group">
           <label for="inputHosts">Choose deployment hosts</label>
-          <select data-bind="options: $root.hostsList, selectedOptions: hosts", class="form-control" id="inputHosts"></select>
+          <select style="width: 100%" data-bind="selectedOptions: hosts" multiple="true" class="form-control" id="inputHosts"></select>
         </div>        
         <button type="submit" class="btn btn-primary">Create Deployment</button>
       </form>

@@ -38,6 +38,10 @@ define([
                 'environment_variables': self.environmentVariables()
             };
 
+            if (self.hosts() && self.hosts().length > 0) {
+                s['hosts'] = self.hosts();
+            }
+            
             if (self.links() && self.links().length > 0) {
                 s['links'] = [];
                 $.each(self.links(), function(i, link) {
@@ -50,7 +54,7 @@ define([
                     }
                 });
             }
-
+            
             if (self.volumes() && self.volumes().length > 0) {
                 s['volumes'] = [];
                 $.each(self.volumes(), function(i, volume) {

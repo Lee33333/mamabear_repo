@@ -4,10 +4,11 @@ define([
     'knockoutamdhelpers',
     'pager',
     'datatables',
+    'select2',
     'app',
     'deployment',
     'host'
-], function ($, ko, knockoutamdhelpers, pager, datatables, App, Deployment, Host) {
+], function ($, ko, knockoutamdhelpers, pager, datatables, select2, App, Deployment, Host) {
     $(function () {
         function AppViewModel() {
             var self = this;
@@ -21,60 +22,67 @@ define([
             self.host = ko.observable(new Host());
             self.page = ko.observable();
             
-            self.appsList = ko.observableArray([]);
-            self.hostsList = ko.observableArray([]);
-            self.imageList = ko.observableArray([]);
             self.hostTable = ko.observable();
             self.appsTable = ko.observable();
             self.deploymentsTable = ko.observable();
-                        
-            self.updateLists = function() {
-                self.updateAppsList();
-                self.updateHostsList();
-                self.updateImageList();
-            };
-            
-            self.updateAppsList = function() {
-                $.getJSON(self.appsPath, function(data) {
-                    if (data) {
-                        self.appsList.removeAll();
-                        return $.each(data.hits, function(i, hit) {
-                            self.appsList.push(hit.name);
-                        });
-                    } else {
-                        console.log("Error listing apps");
-                    }
-                });
-            };
-
-            self.updateHostsList = function() {
-                $.getJSON(self.hostsPath, function(data) {
-                    if (data) {
-                        self.hostsList.removeAll();
-                        return $.each(data.hits, function(i, hit) {
-                            self.hostsList.push(hit.hostname);
-                        });
-                    } else {
-                        console.log("Error listing hosts");
-                    }
-                });
-            };
-
-            self.updateImageList = function() {
-                $.getJSON(self.imagesPath, function(data) {
-                    if (data) {
-                        self.imageList.removeAll();
-                        return $.each(data.hits, function(i, hit) {
-                            self.imageList.push(hit.app_name+':'+hit.tag);
-                        });
-                    } else {
-                        console.log("Error listing images");
-                    }
-                });
-            };
-
-            self.bindTagsInput = function(page) {
-                $('#inputMappedPorts').tagsinput();
+                                    
+            self.bindSelects = function(page) {
+                var appBindArgs = {
+                    ajax: {
+                        url: self.appsPath,
+                        dataType: 'json',
+                        delay: 250,
+                        processResults: function(data, pg) {
+                            return {
+                                results: $.map(data.hits, function(hit, i) {
+                                    return {'text': hit.name, 'id': hit.name};
+                                })
+                            }
+                        }
+                    },
+                    minimumInputLength: 0
+                };
+                
+                var hostBindArgs = {
+                    ajax: {
+                        url: self.hostsPath,
+                        dataType: 'json',
+                        delay: 250,
+                        processResults: function(data, pg) {
+                            return {
+                                results: $.map(data.hits, function(hit, i) {
+                                    return {'text': hit.hostname, 'id': hit.hostname};
+                                })
+                            }
+                        }
+                    },
+                    minimumInputLength: 0
+                };
+                
+                var imageBindArgs = {
+                    ajax: {
+                        url: self.imagesPath,
+                        dataType: 'json',
+                        delay: 250,
+                        data: function(params) {
+                            return {
+                                app_name: params.term
+                            }
+                        },
+                        processResults: function(data, pg) {
+                            return {
+                                results: $.map(data.hits, function(hit, i) {
+                                    return {'text': hit.app_name+':'+hit.tag, 'id': hit.id};
+                                })
+                            };
+                        }
+                    },
+                    minimumInputLength: 1
+                };
+                $('#inputAppName').select2(appBindArgs);
+                $('#inputHosts').select2(hostBindArgs);
+                $('#inputAppLinks').select2(imageBindArgs);
+                $('#inputAppVolumes').select2(imageBindArgs);
             }
             
             self.setPage = function(page) {
