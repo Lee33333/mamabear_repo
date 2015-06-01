@@ -6,6 +6,8 @@ import json
 import getopt
 import cherrypy
 import ConfigParser
+from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
+from apscheduler.schedulers.background import BackgroundScheduler
 
 from mamabear.worker import Worker
 from mamabear.controllers import *
@@ -96,6 +98,25 @@ def start(config):
     cherrypy.engine.block()
     cherrypy.quickstart(app)
 
+def update_all_job(config):
+    worker = Worker(config)
+    worker.update_all()
+    
+def start_worker(config):
+    connection_string = "mysql://%s:%s@%s/%s" % (
+        config.get('mysql', 'user'),
+        config.get('mysql', 'passwd'),
+        config.get('mysql', 'host'),
+        config.get('mysql', 'database')
+    )
+    
+    scheduler = BackgroundScheduler()
+    scheduler.add_jobstore(SQLAlchemyJobStore(url=connection_string), alias='db')
+    scheduler.start()
+    scheduler.add_job(
+        update_all_job, args=[config], replace_existing=True, id='worker',
+        trigger='cron', minute='*/5', jobstore='db', timezone='UTC')
+    
 if __name__ == '__main__':
     argv = sys.argv[1:]
     conf = None
@@ -118,5 +139,6 @@ if __name__ == '__main__':
 
     c = ConfigParser.ConfigParser()
     c.readfp(open(conf))
-            
-    start(c)
+
+    start_worker(c)
+    start(c)    

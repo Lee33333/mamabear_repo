@@ -31,17 +31,17 @@ class Worker(object):
         sess.configure(bind=engine)
         return sess
 
-    def __init__(self, config):
-        db = self.get_session(self.get_engine(config))
+    def __init__(self, config, updateOnStart=False):        
         self._config = config
         # Just one registry is allowed for now, and is configured at
         # server launch time
         self._registry_url = config.get('registry', 'host')
         # Registry user is *required*
         self._registry_user = config.get('registry', 'user')
-        self._registry_password = config.get('registry', 'password')            
-        self.update_all(db)
-
+        self._registry_password = config.get('registry', 'password')
+        if updateOnStart:            
+            self.update_all()
+        
     def image_ref(self, app_name, image_tag):
         return "%s/%s:%s" % (self._registry_user, app_name, image_tag)
 
@@ -166,28 +166,33 @@ class Worker(object):
             logging.info("Updating containers for host: {}".format(host.hostname))
             self.update_host_containers(db, host)
                     
-    def update_all(self, db):        
+    def update_all(self):
+        try:
+            db = self.get_session(self.get_engine(self._config))
         
-        apps = db.query(App).all()
-        for app in apps:
-            logging.info("Updating image and deployment information for {}".format(app.name))
-            try:
-                self.update_app_images(db, app)
-            except Exception as e:
-                logging.error(e)
-                db.rollback()
-                
-            for deployment in app.deployments:
+            apps = db.query(App).all()
+            for app in apps:
+                logging.info("Updating image and deployment information for {}".format(app.name))
                 try:
-                    self.update_deployment_containers(db, deployment)
-                    self.update_deployment_status(db, deployment)
+                    self.update_app_images(db, app)
                 except Exception as e:
                     logging.error(e)
                     db.rollback()
+                
+                for deployment in app.deployments:
+                    try:
+                        self.update_deployment_containers(db, deployment)
+                        self.update_deployment_status(db, deployment)
+                    except Exception as e:
+                        logging.error(e)
+                        db.rollback()
                     
-        logging.info("Updating container information")
-        try:
-            self.update_all_containers(db)
+            logging.info("Updating container information")
+            try:
+                self.update_all_containers(db)
+            except Exception as e:
+                logging.error(e)
+                db.rollback()
         except Exception as e:
             logging.error(e)
-            db.rollback()
+            pass
