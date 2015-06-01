@@ -10,6 +10,7 @@ define([
         var apiPath = '../mamabear/v1/host';
         
         self.hostname = ko.observable();
+        self.alias = ko.observable();
         self.port = ko.observable();
         self.asgName = ko.observable();
         self.containers = ko.observableArray([]);
@@ -49,6 +50,7 @@ define([
             data = {
                 'host': {
                     'hostname': self.hostname(),
+                    'alias': self.alias(),
                     'port': self.port()
                 }
             };
@@ -72,6 +74,7 @@ define([
                 if (data && data.hits.length > 0) {
                     hostData = data.hits[0];
                     self.hostname(hostData.hostname);
+                    self.alias(hostData.alias);
                     if (hostData.hasOwnProperty('port')) {
                         self.port(hostData.port);
                     }

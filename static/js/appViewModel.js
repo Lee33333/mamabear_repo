@@ -51,7 +51,7 @@ define([
                         processResults: function(data, pg) {
                             return {
                                 results: $.map(data.hits, function(hit, i) {
-                                    return {'text': hit.hostname, 'id': hit.hostname};
+                                    return {'text': hit.alias, 'id': hit.hostname};
                                 })
                             }
                         }
@@ -85,7 +85,10 @@ define([
                 });
                 $('#inputHosts').select2(hostBindArgs);
                 $('#inputHosts').on('select2:select', function(e) {
-                    self.deployment().hosts.push(e.params.data.text);
+                    self.deployment().hosts.push({
+                        'hostname': e.params.data.id,
+                        'alias': e.params.data.text
+                    });
                 });
                 $('#inputAppLinks').select2(imageBindArgs);
                 $('#inputAppLinks').on('select2:select', function(e) {
@@ -213,6 +216,7 @@ define([
                     },                    
                     'columns': [
                         {'data': 'hostname'},
+                        {'data': 'alias'},
                         {'data': 'port'},
                         {'data': 'status'},
                         {'data': 'up_containers'}
@@ -279,6 +283,6 @@ define([
         viewModel = new AppViewModel();
         pager.extendWithPage(viewModel);
         ko.applyBindings(viewModel);
-        pager.start('deployments/all');
+        pager.start();
     });
 });

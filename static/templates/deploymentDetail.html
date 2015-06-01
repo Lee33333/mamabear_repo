@@ -34,10 +34,10 @@
   <strong>Environment Variables: </strong>
   <ul data-bind="foreach: envVarList" style="list-style-type: none">
     <li class="row">
-      <strong class="col-md-1">Name: </strong>
-      <span class="col-md-2" data-bind="text: name"></span>
-      <strong class="col-md-1">Value: </strong>
-      <span class="col-md-2" data-bind="text: value"></span>
+      <strong class="col-sm-1">Name: </strong>
+      <span class="col-sm-2" data-bind="text: name"></span>
+      <strong class="col-sm-1">Value: </strong>
+      <span class="col-sm-2" data-bind="text: value"></span>
     </li>
   </ul>
 </p>
@@ -45,7 +45,7 @@
 <p>
   <strong>Configured Hosts: </strong>
   <ul data-bind="foreach: hosts">
-    <li data-bind="text: $data"></li>
+    <li><a data-bind="attr: {href: '#hosts/'+hostname}, text: alias"></a></li>
   </ul>
 </p>
 

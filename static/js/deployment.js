@@ -61,7 +61,9 @@ define([
             };
 
             if (self.hosts() && self.hosts().length > 0) {
-                s['hosts'] = self.hosts();
+                s['hosts'] = $.map(self.hosts(), function(host, i) {
+                    return host.hostname;
+                });
             }
             
             if (self.links() && self.links().length > 0) {

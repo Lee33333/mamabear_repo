@@ -10,6 +10,7 @@ Base = declarative_base()
 class Host(Base):
     __tablename__ = "hosts"
     id = Column(Integer, autoincrement=True, primary_key=True)
+    alias = Column(String(200), index=True, unique=True)
     hostname = Column(String(200), index=True, unique=True)
     port = Column(Integer)
     status = Column(String(4), index=True)
@@ -21,13 +22,14 @@ class Host(Base):
     @staticmethod
     def create(session, data):
         hostname = data.get('hostname')
+        alias = data.get('alias')
         port = data.get('port')
         asg_name = data.get('asg_name')
 
         if hostname:
-            host = Host(hostname=hostname, status='up')
+            host = Host(hostname=hostname, alias=alias, status='up')
             if port:
-                host.port = port
+                host.port = port                
             if asg_name:
                 host.asg_name = asg_name
             try:
@@ -63,6 +65,7 @@ class Host(Base):
     def encode(self):
         encoded = {
             'hostname': self.hostname,
+            'alias': self.alias,
             'port': self.port,
             'status': self.status,
             'container_count': len(self.containers),
@@ -367,7 +370,7 @@ class Deployment(Base):
             'status_port': self.status_port,
             'mapped_ports': ports,
             'mapped_volumes': volumes,
-            'hosts': [host.hostname for host in self.hosts],
+            'hosts': [{'hostname': host.hostname, 'alias': host.alias} for host in self.hosts],
             'links': [image.encode() for image in self.links],
             'volumes': [image.encode() for image in self.volumes],
             'containers': [c.encode() for c in self.containers],
