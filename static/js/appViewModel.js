@@ -80,9 +80,21 @@ define([
                     minimumInputLength: 1
                 };
                 $('#inputAppName').select2(appBindArgs);
+                $('#inputAppName').on('select2:select', function(e) {
+                    self.deployment().appName(e.params.data.text);
+                });
                 $('#inputHosts').select2(hostBindArgs);
+                $('#inputHosts').on('select2:select', function(e) {
+                    self.deployment().hosts.push(e.params.data.text);
+                });
                 $('#inputAppLinks').select2(imageBindArgs);
+                $('#inputAppLinks').on('select2:select', function(e) {
+                    self.deployment().links.push(e.params.data.text);
+                });
                 $('#inputAppVolumes').select2(imageBindArgs);
+                $('#inputAppVolumes').on('select2:select', function(e) {
+                    self.deployment().volumes.push(e.params.data.text);
+                });
             }
             
             self.setPage = function(page) {
@@ -133,8 +145,18 @@ define([
                             data: params,
                             url: self.deploymentsPath
                         }).done(function(json) {
-                            result = $.map(json.hits, function(row, i) {
+                            var result = $.map(json.hits, function(row, i) {
                                 row.deployment = row.app_name+':'+row.image_tag+'/'+row.environment;
+                                row.up_containers = 0;
+                                row.host_count = 0;
+                                $.each(row.containers, function(i, container) {
+                                    if (container.status === 'up') {
+                                        row.up_containers += 1;
+                                    }
+                                });
+                                $.each(row.hosts, function(i, host) {
+                                    row.host_count += 1;
+                                });
                                 return row;
                             });
                             callback({'draw': data.draw, 'data':result, 'recordsTotal': json.total, 'recordsFiltered': json.total});
@@ -147,7 +169,8 @@ define([
                         {'data': 'app_name'},
                         {'data': 'image_tag'},
                         {'data': 'environment'},
-                        {'data': 'status_endpoint'}
+                        {'data': 'up_containers'},
+                        {'data': 'host_count'}
                     ],
                     'columnDefs': [
                         {
@@ -174,7 +197,16 @@ define([
                             data: params,
                             url: self.hostsPath
                         }).done(function(json) {
-                            callback({'draw': data.draw, 'data':json.hits, 'recordsTotal': json.total, 'recordsFiltered': json.total});
+                            var result = $.map(json.hits, function(row, i) {
+                                row.up_containers = 0;
+                                $.each(row.containers, function(i, container) {
+                                    if (container.status === 'up') {
+                                        row.up_containers += 1;
+                                    }
+                                });
+                                return row;
+                            });
+                            callback({'draw': data.draw, 'data':result, 'recordsTotal': json.total, 'recordsFiltered': json.total});
                         }).fail(function() {
                             console.log("Failed gettings hosts");
                         })
@@ -182,7 +214,8 @@ define([
                     'columns': [
                         {'data': 'hostname'},
                         {'data': 'port'},
-                        {'data': 'container_count'}
+                        {'data': 'status'},
+                        {'data': 'up_containers'}
                     ],
                     'columnDefs': [
                         {'targets':0, 'render': function(data,type,row) {return '<a href="#hosts/'+data+'">'+data+'</a>';}}
@@ -204,7 +237,25 @@ define([
                             data: params,
                             url: self.appsPath
                         }).done(function(json) {
-                            callback({'draw': data.draw, 'data':json.hits, 'recordsTotal': json.total, 'recordsFiltered': json.total});
+                            var result = $.map(json.hits, function(row, i) {
+                                row.image_count = 0;
+                                $.each(row.images, function(i, image) {
+                                    row.image_count += 1;
+                                });
+                                
+                                row.deployment_count = 0;
+                                row.up_containers = 0;
+                                $.each(row.deployments, function(i, deployment) {
+                                    row.deployment_count += 1;
+                                    $.each(deployment.containers, function(j, container) {
+                                        if (container.status === 'up') {
+                                            row.up_containers += 1;
+                                        }
+                                    });
+                                });                                
+                                return row;
+                            });
+                            callback({'draw': data.draw, 'data':result, 'recordsTotal': json.total, 'recordsFiltered': json.total});
                         }).fail(function() {
                             console.log("Failed gettings apps");
                         })
@@ -212,7 +263,8 @@ define([
                     'columns': [
                         {'data': 'name'},
                         {'data': 'image_count'},
-                        {'data': 'container_count'}
+                        {'data': 'deployment_count'},
+                        {'data': 'up_containers'}
                     ],
                     'columnDefs': [
                         {'targets':0, 'render': function(data,type,row) {return '<a href="#apps/'+data+'">'+data+'</a>';}}

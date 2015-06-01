@@ -1,6 +1,88 @@
+<h2 class="sub-header" data-bind="text: appName"></h2>
+<div class="row">
+  <strong class="col-md-2">Image: </strong>
+  <span class="col-md-2" data-bind="text: imageTag"></span>
+</div>
+<div class="row">
+  <strong class="col-md-2">Environment: </strong>
+  <span class="col-md-2" data-bind="text: environment"></span>
+</div>
+<div class="row">
+  <strong class="col-md-2">Status Endpoint: </strong>
+  <span class="col-md-2" data-bind="text: statusEndpoint"></span>
+</div>
+<div class="row">
+  <strong class="col-md-2">Status Port: </strong>
+  <span class="col-md-2" data-bind="text: statusPort"></span>
+</div>
+
 <p>
-  <h2 class="sub-header" data-bind="text: appName"></h2>
-  <h3 class="sub-header" data-bind="text: imageTag"></h3>
-  <h3 class="sub-header" data-bind="text: environment"></h3>
-  Cute little snippet of text about my deployment.
+  <strong>Mapped Ports: </strong>
+  <ul data-bind="foreach: mappedPorts">
+    <li data-bind="text: $data"></li>
+  </ul>
 </p>
+
+<p>
+  <strong>Mapped Volumes: </strong>
+  <ul data-bind="foreach: mappedVolumes">
+    <li data-bind="text: $data"></li>
+  </ul>
+</p>
+
+<p>
+  <strong>Environment Variables: </strong>
+  <ul data-bind="foreach: envVarList" style="list-style-type: none">
+    <li class="row">
+      <strong class="col-md-1">Name: </strong>
+      <span class="col-md-2" data-bind="text: name"></span>
+      <strong class="col-md-1">Value: </strong>
+      <span class="col-md-2" data-bind="text: value"></span>
+    </li>
+  </ul>
+</p>
+
+<p>
+  <strong>Configured Hosts: </strong>
+  <ul data-bind="foreach: hosts">
+    <li data-bind="text: $data"></li>
+  </ul>
+</p>
+
+<p data-bind="visible: links().length">
+  <strong>Linked Apps: </strong>
+  <ul data-bind="foreach: links">
+    <li data-bind="text: $data"></li>
+  </ul>
+</p>
+
+<p data-bind="visible: volumes().length">
+  <strong>Linked Volumes: </strong>
+  <ul data-bind="foreach: volumes">
+    <li data-bind="text: $data"></li>
+  </ul>
+</p>
+
+<div class="table-responsive">
+  <h4 class="sub-header">Containers</h4>
+  <table id="deployment-containers" class="table table-striped">
+    <thead>
+      <tr>
+        <th>Container</th>
+        <th>Host</th>
+        <th>Command</th>
+        <th>App Status</th>
+        <th>Container State</th>
+      </tr>
+    </thead>
+    <tbody data-bind="foreach: containers">
+      <tr>
+        <td data-bind="text: id"></td>
+        <td data-bind="text: host"></td>
+        <td data-bind="text: command"></td>
+        <td data-bind="text: status"></td>
+        <td data-bind="text: state"></td>
+      </tr>
+    </tbody>
+  </table>
+</div>

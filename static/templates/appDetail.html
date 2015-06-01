@@ -1,31 +1,44 @@
 <h2 class="sub-header" data-bind="text: name"></h2>
-<div class="table-responsive">
-  <h4 class="sub-header">Deployments</h3>
-  <table class="table table-striped">
-    <thead>
-      <tr><th>Image Tag</th><th>Environment</th><th>Status Endpoint</th><th>Running Containers</th></tr>
-    </thead>
-    <tbody data-bind="foreach: deployments">
-      <tr>
-        <td data-bind="text: imageTag"></td>
-        <td data-bind="text: environment"></td>
-        <td data-bind="text: statusEndpoint"></td>
-        <td data-bind="text: $data.containers().length"></td>
-      </tr>
-    </tbody>
-  </table>
+<div class="row">
+  <div class="table-responsive">
+    <h4 class="sub-header">Deployments</h4>
+    <table id="app-deployments" class="table table-striped">
+      <thead>
+        <tr>
+          <th>Image Tag</th>
+          <th>Environment</th>
+          <th>Up Containers</th>
+          <th>Hosts</th>
+        </tr>
+      </thead>
+      <tbody data-bind="foreach: deployments">
+        <tr>
+          <td data-bind="text: imageTag"></td>
+          <td data-bind="text: environment"></td>
+          <td data-bind="text: upContainers"></td>
+          <td data-bind="text: hosts().length"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
-<div class="table-responsive">
-  <h4 class="sub-header">Images</h3>
-  <table class="table table-striped">
-    <thead>
-      <tr><th>Image Tag</th><th>Layer</th></tr>
-    </thead>
-    <tbody data-bind="foreach: images">
-      <tr>
-        <td data-bind="text: hash"></td>
-        <td data-bind="text: tag"></td>
-      </tr>
-    </tbody>
-  </table>
+<br>
+<div class="row">
+  <div class="table-responsive">
+    <h4 class="sub-header">Images</h4>
+    <table id="app-images" class="table table-striped">
+      <thead>
+        <tr>
+          <th>Image Tag</th>
+          <th>Layer</th>
+        </tr>
+      </thead>
+      <tbody data-bind="foreach: images">
+        <tr>
+          <td data-bind="text: tag"></td>
+          <td data-bind="text: hash"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>

@@ -1,7 +1,24 @@
-<p>
-  <h2 class="sub-header" data-bind="text: hostname"></h2>
-  <h3 class="sub-header" data-bind="text: port"></h3>
-  <h3 class="sub-header" data-bind="text: asgName"></h3>
-  <h3 class="sub-header" data-bind="text: containers"></h3>
-  A small chunk of text about this host.
-</p>
+<h2 class="sub-header" data-bind="text: hostname"></h2>
+<p><strong>Port: </strong><span data-bind="text: port"></span></p>
+<p><strong>ASG: </strong><span data-bind="text: asgName"></span></p>
+<div class="table-responsive">
+  <h4 class="sub-header">Containers</h4>
+  <table id="host-containers" class="table table-striped">
+    <thead>
+      <tr>
+        <th>Container</th>
+        <th>Command</th>
+        <th>App Status</th>
+        <th>Container State</th>
+      </tr>
+    </thead>
+    <tbody data-bind="foreach: containers">
+      <tr>
+        <td data-bind="text: id"></td>
+        <td data-bind="text: command"></td>
+        <td data-bind="text: status"></td>
+        <td data-bind="text: state"></td>
+      </tr>
+    </tbody>
+  </table>
+</div>

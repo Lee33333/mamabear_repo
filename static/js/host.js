@@ -13,7 +13,7 @@ define([
         self.port = ko.observable();
         self.asgName = ko.observable();
         self.containers = ko.observableArray([]);
-        self.status = ko.observable('ok');
+        self.status = ko.observable();
         
         self.hostPath = ko.computed(function() {
             return apiPath+'?hostname='+self.hostname();
@@ -35,18 +35,17 @@ define([
         self.new_container = function(data) {
             container = new Container();
             if (data) {
+                container.id(data.id);
                 container.image(self.new_image(data.image));
                 container.host(self);
                 container.status(data.status);
                 container.command(data.command);
+                container.state(data.state);
             }
             return container;
         };
         
         self.create = function() {
-            console.log("creating host");
-            self.status('loading');
-            // ignore other fields for now
             data = {
                 'host': {
                     'hostname': self.hostname(),
@@ -61,7 +60,6 @@ define([
             }).done(function(json) {
                 console.log(json);
                 self.get(function(h) {
-                    self.status('ok');
                     pager.navigate('#hosts/all');
                 });                
             }).fail(function() {
@@ -76,7 +74,10 @@ define([
                     self.hostname(hostData.hostname);
                     if (hostData.hasOwnProperty('port')) {
                         self.port(hostData.port);
-                    }                    
+                    }
+                    if (hostData.hasOwnProperty('status')) {
+                        self.status(hostData.status);
+                    }
                     if (hostData.hasOwnProperty('asg_name')) {
                         self.asgName(hostData.asg_name);
                     }
@@ -96,7 +97,7 @@ define([
             if (page.page.parentPage.id() == 'hosts') {
                 self.hostname(page.page.id());
                 self.get(function(host) {
-                    console.log('got host');
+                    $('#host-containers').DataTable();
                 });
             }
         }

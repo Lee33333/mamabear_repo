@@ -2,8 +2,9 @@ define([
     'jquery',
     'knockout',
     'pager',
-    'app'
-], function ($, ko, pager, App) {
+    'container',
+    'image'
+], function ($, ko, pager, Container, Image) {
     function Deployment(page) {        
         var self = this;
         
@@ -26,6 +27,27 @@ define([
         self.mappedPortsString = ko.observable('');
         self.mappedVolumesString = ko.observable('');
 
+        self.envVarList = ko.computed(function() {
+            var result = [];
+            for (var key in self.environmentVariables()) {
+                result.push({
+                    'name': key,
+                    'value': self.environmentVariables()[key]
+                });
+            }
+            return result;
+        });
+        
+        self.upContainers = ko.computed(function() {
+            var result = 0;
+            $.each(self.containers(), function(i, container) {
+                if (container.status() === 'up') {
+                    result += 1;
+                }
+            });
+            return result;
+        });
+        
         self.serialize = ko.computed(function() {
             var s = {
                 'environment': self.environment(),
@@ -116,17 +138,43 @@ define([
             }
         });
 
-        self.updateImageList = function(callback) {
+        self.updateImageList = function() {
             $.getJSON(self.appImagesPath(), function(data) {
                 if (data) {
                     self.imageList.removeAll();
                     $.each(data[self.appName()]['images'], function(i, image) {
                         self.imageList.push(image.tag);
                     });
-                    callback();
                 }
             })
         };
+
+        self.new_image = function(data) {
+            image = new Image();
+            if (data) {
+                if (data.hasOwnProperty('id')) {
+                    image.hash(data.id);
+                }                
+                if (data.hasOwnProperty('tag')) {
+                    image.tag(data.tag);
+                }
+            }
+            return image;
+        };
+        
+        self.new_container = function(data) {
+            container = new Container();
+            if (data) {
+                container.id(data.id);
+                container.image(self.new_image(data.image));
+                container.host(data.host);
+                container.status(data.status);
+                container.command(data.command);
+                container.state(data.state);
+            }
+            return container;
+        };
+
         
         self.get = function(callback) {
             $.getJSON(self.deploymentPath(), function (data) {
@@ -135,8 +183,14 @@ define([
                     self.imageTag(data.image_tag);
                     self.appName(data.app_name);
                     self.hosts(data.hosts);
-                    self.containers(data.containers);
-                    self.environmentVariables(data.environmentVariables);
+                    
+                    console.log(data);
+                    self.containers.removeAll();
+                    $.each(data.containers, function(i, container) {
+                        self.containers.push(self.new_container(container));
+                    });
+
+                    self.environmentVariables(data.environment_variables);
                     if (data.hasOwnProperty('mapped_ports') && data.mapped_ports != '') {
                         self.mappedPorts(data.mapped_ports);
                     }
@@ -146,12 +200,23 @@ define([
                     if (data.hasOwnProperty('status_endpoint') && data.status_endpoint !== '') {
                         self.statusEndpoint(data.status_endpoint);
                     }
+                    if (data.hasOwnProperty('status_port') && data.status_port !== '') {
+                        self.statusPort(data.status_port);
+                    }
+                    if (data.hasOwnProperty('links')) {
+                        $.each(data.links, function(i, link) {
+                            self.links.push(link.app_name+':'+link.tag);
+                        });
+                    }
+                    if (data.hasOwnProperty('volumes')) {
+                        $.each(data.volumes, function(i, volume) {
+                            self.volumes.push(volume.app_name+':'+volume.tag);
+                        });
+                    }
                     if (data.hasOwnProperty('parent') && data.parent !== '') {
                         self.parent(data.parent);
                     }
-                    self.updateImageList(function() {
-                        callback(self);
-                    });
+                    self.updateImageList();
                 } else {
                     console.log("no deployment");
                 }
@@ -177,7 +242,7 @@ define([
             data = {
                 'deployment': self.serialize()
             };
-
+            console.log(data);
             $.ajax({
                 type: 'POST',
                 data: ko.toJSON(data),
@@ -202,7 +267,7 @@ define([
                 self.imageTag(imageTag);
                 self.environment(environment);
                 self.get(function(dep) {                    
-                    console.log('got dep');
+                    $('#deployment-containers').DataTable();
                 });
             }
         }

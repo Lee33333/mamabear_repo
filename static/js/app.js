@@ -35,19 +35,25 @@ define([
         self.new_image = function(data) {
             image = new Image();
             if (data) {
-                image.hash(data.id);
-                image.tag(data.tag);
+                if (data.hasOwnProperty('id')) {
+                    image.hash(data.id);
+                }                
+                if (data.hasOwnProperty('tag')) {
+                    image.tag(data.tag);
+                }
             }
             return image;
         };
-
-        self.new_container = function(data) {            
+        
+        self.new_container = function(data) {
             container = new Container();
             if (data) {
+                container.id(data.id);
                 container.image(self.new_image(data.image));
-                container.host(self.new_host({'hostname': data.host}));
+                container.host(self);
                 container.status(data.status);
                 container.command(data.command);
+                container.state(data.state);
             }
             return container;
         };
@@ -121,26 +127,22 @@ define([
                 console.log("Failed creating app");
             });
         };
-        
-        // Can we do the callback twice?
-        self.get = function(callback) {
-            self.status('loading');
-            
-            // Get App images
+
+        self.getImages = function(callback) {
             $.getJSON(self.imagesPath(), function (data) {
                 if (data) {
                     self.images.removeAll();                    
                     $.each(data[self.name()]['images'], function(i, image) {
                         self.images.push(self.new_image(image));
                     });
-                    self.status('images ok');
-                    callback(self);
+                    callback();
                 } else {
-                    self.status('error');                    
+                    console.log('error');
                 }
             });
+        };
 
-            // Get App deployments
+        self.getDeployments = function(callback) {
             $.getJSON(self.deploymentsPath(), function (data) {
                 if (data) {
                     self.deployments.removeAll();                    
@@ -152,7 +154,16 @@ define([
                 } else {
                     self.status('error');
                 }
-            });            
+            });
+        };
+        
+        // Can we do the callback twice?
+        self.get = function(callback) {
+            self.getImages(function() {
+                self.getDeployments(function() {
+                    callback(self);
+                });
+            });
         };
 
         // Initialize from page
@@ -161,7 +172,8 @@ define([
                 var appName = page.page.id();
                 self.name(appName);
                 self.get(function(app) {
-                    console.log('got app'); 
+                    $('#app-deployments').DataTable();
+                    $('#app-images').DataTable();
                 });
             }
         } 

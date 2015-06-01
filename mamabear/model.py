@@ -64,6 +64,7 @@ class Host(Base):
         encoded = {
             'hostname': self.hostname,
             'port': self.port,
+            'status': self.status,
             'container_count': len(self.containers),
             'containers': [c.encode() for c in self.containers]
         }
@@ -85,7 +86,7 @@ class Image(Base):
 
     @staticmethod
     def find_by_name_and_tag(session, app_name, image_tag):
-        q = Image.list_query(app_name=app_name, image_tag=image_tag)
+        q = Image.list_query(session, app_name=app_name, image_tag=image_tag)
         if q.count() > 0:
             return q.limit(1).one()
             
@@ -157,9 +158,13 @@ class Container(Base):
         
     def encode(self):
         result = {
+            'id': self.id,
             'host': self.host.hostname,
             'status': self.status,
-            'command': self.command
+            'command': self.command,
+            'started_at': self.started_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'finished_at': self.finished_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'state': self.state
         }
         if self.image:
             result['image'] = self.image.encode()
@@ -210,8 +215,8 @@ class App(Base):
     def encode(self):
         return {
             'name': self.name,
-            'image_count': len(self.images),
-            'container_count': sum([len(d.containers) for d in self.deployments])
+            'images': [image.encode() for image in self.images],
+            'deployments': [d.encode() for d in self.deployments]
         }
         
 deployment_hosts = Table(
