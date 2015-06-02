@@ -254,8 +254,8 @@ define([
                 console.log(json);
                 pager.navigate('#deployments/all');
             }).fail(function(json) {
-                console.log(json);
                 console.log("Failed creating deployment");
+                $('.alert').removeClass('hidden');
             });
         };
 

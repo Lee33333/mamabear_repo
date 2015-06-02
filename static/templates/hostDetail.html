@@ -15,10 +15,10 @@
     </thead>
     <tbody data-bind="foreach: containers">
       <tr>
-        <td data-bind="text: id"></td>
-        <td data-bind="text: command"></td>
-        <td data-bind="text: status"></td>
-        <td data-bind="text: state"></td>
+        <td><samp data-bind="text: id"></samp></td>
+        <td><samp data-bind="text: command"></samp></td>
+        <td><h5 data-bind="text: status, css: {'text-success': status() === 'up', 'text-danger': status() === 'down'}"></h5></td>
+        <td><h5 data-bind="text: state, css: {'text-success': state() === 'running'}"></h5></td>
       </tr>
     </tbody>
   </table>

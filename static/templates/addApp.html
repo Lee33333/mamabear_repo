@@ -4,7 +4,7 @@
       <form data-bind="submit: create">
         <div class="form-group">
           <label for="inputName">Create a new application</label>
-          <input data-bind="textInput: name" type="text" class="form-control" id="inputName" placeholder="Application Name">
+          <input data-bind="textInput: name" type="text" required="true" class="form-control" id="inputName" placeholder="Application Name">
         </div>
         <button type="submit" class="btn btn-primary"><span data-bind="visible: status() == 'loading'" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>Create App</button>
       </form>

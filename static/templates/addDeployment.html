@@ -12,11 +12,11 @@
         </div>
         <div class="form-group">
           <label for="inputAppName">Choose existing application</label>
-          <select style="width: 100%" data-bind="value: appName" class="form-control" id="inputAppName"></select>
+          <select style="width: 100%" data-bind="value: appName" required="true" class="form-control" id="inputAppName"></select>
         </div>
         <div class="form-group">
           <label for="inputImage">Choose existing image</label>
-          <select data-bind="options: imageList, value: imageTag, click: updateImageList" class="form-control" id="inputImage"></select>
+          <select data-bind="options: imageList, value: imageTag, click: updateImageList" required="true" class="form-control" id="inputImage"></select>
         </div>
         <div class="form-group">
           <label for="inputAppLinks">Choose existing applications to link (--link)</label>
@@ -28,11 +28,11 @@
         </div>  
         <div class="form-group">
           <label for="inputEndpoint">Status endpoint</label>
-          <input data-bind="value: statusEndpoint" type="text" class="form-control" id="inputEndpoint" placeholder="Status endpoint, eg: /v1/status">
+          <input data-bind="value: statusEndpoint" type="text" class="form-control" required="true" id="inputEndpoint" placeholder="Status endpoint, eg: /v1/status">
         </div>
         <div class="form-group">
           <label for="inputEndpointPort">Status port</label>
-          <input data-bind="value: statusPort" type="text" class="form-control" id="inputEndpointPort" placeholder="Status endpoint port, eg: 9001">
+          <input data-bind="value: statusPort" type="number" class="form-control" required="true" id="inputEndpointPort" placeholder="Status endpoint port, eg: 9001">
         </div>
         <div class="form-group">
           <label for="inputEnvironmentVariables">Environment Variables (-e)</label>
@@ -48,9 +48,10 @@
         </div>
         <div class="form-group">
           <label for="inputHosts">Choose deployment hosts</label>
-          <select style="width: 100%" multiple="true" class="form-control" id="inputHosts"></select>
+          <select style="width: 100%" multiple="true" required="true" class="form-control" id="inputHosts"></select>
         </div>        
         <button type="submit" class="btn btn-primary">Create Deployment</button>
+        <span class="hidden alert alert-danger">Deployment with that configuration already exists</span>
       </form>
     </div>
   </div>

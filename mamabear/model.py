@@ -10,7 +10,7 @@ Base = declarative_base()
 class Host(Base):
     __tablename__ = "hosts"
     id = Column(Integer, autoincrement=True, primary_key=True)
-    alias = Column(String(200), index=True, unique=True)
+    alias = Column(String(200), index=True, unique=True, nullable=False)
     hostname = Column(String(200), index=True, unique=True)
     port = Column(Integer)
     status = Column(String(4), index=True)

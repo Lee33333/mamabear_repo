@@ -222,7 +222,15 @@ define([
                         {'data': 'up_containers'}
                     ],
                     'columnDefs': [
-                        {'targets':0, 'render': function(data,type,row) {return '<a href="#hosts/'+data+'">'+data+'</a>';}}
+                        {'targets':0, 'render': function(data,type,row) {return '<a href="#hosts/'+data+'">'+data+'</a>';}},
+                        {'targets':3, 'render': function(data,type,row) {
+                            switch (data) {
+                                case 'up':
+                                    return '<h4 class="text-success"><strong>'+data+'</strong></h4>';
+                                case 'down':
+                                    return '<h4 class="text-danger"><strong>'+data+'</strong></h4>';                                
+                            };
+                        }}
                     ]
                 }));
             }
