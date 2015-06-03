@@ -357,7 +357,17 @@ class Deployment(Base):
                 session.rollback()
                 traceback.print_exc()
 
-                
+    def encode_with_deps(self, session):
+        result = {'deployment': self.encode(), 'dependencies':[]}
+        children = dict([(image.id, image) for image in self.links+self.volumes])
+        for child_id in children:
+            child = children[child_id]
+            child_deployment = Deployment.get_by_app(
+                session, child.app_name, child.tag, self.environment)
+            if child_deployment:
+                result['dependencies'].append(child_deployment.encode_with_deps(session))
+        return result
+            
     def encode(self):
         ports = self.mapped_ports.split(',') if self.mapped_ports else []
         volumes = self.mapped_volumes.split(',') if self.mapped_volumes else []

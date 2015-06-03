@@ -9,6 +9,8 @@ class DockerWrapper(object):
     def __init__(self, docker_host, docker_port, config):
         self.host = docker_host
         self.port = docker_port
+        self.registry_user = config.get('registry', 'user')
+        
         self._tls_conf = docker.tls.TLSConfig(
             assert_hostname=False,
             verify=False,
@@ -86,7 +88,34 @@ class DockerWrapper(object):
     def stop(self, container_id):
         return self._client.stop(container_id)
 
-    def run(self, app_name, image_id, mapped_ports=None, mapped_volumes=None):
+    def create_container(self, **kwargs):
+        return self._client.create_container(**kwargs)
+
+    def start_container(self, container):
+        return self._client.start(container=container.get('Id'))
+
+    def run_with_deps(self, tree):
+        deployment = tree['deployment']
+        dependencies = tree['dependencies']
+        for dependency in dependencies:
+            self.run_with_deps(dependency)
+
+        logging.info("Launching deployment {}:{}".format(
+            deployment.get('app_name'), deployment.get('image_tag')))
+        self.run(deployment)
+        
+    def run(self, d):
+        app_name = d['app_name']
+        image_id = '%s/%s:%s' % (self.registry_user, app_name, d['image_tag'])
+        status_url = 'http://%s:%s/%s' % (self.host, d['status_port'], d['status_endpoint'])
+        
+        mapped_ports = d.get('mapped_ports')
+        mapped_volumes = d.get('mapped_volumes')
+        
+        env_vars = d.get('environment_variables')
+        linked_apps = d.get('links')
+        linked_volumes = d.get('volumes')
+        
         ports = []
         port_bindings = {}
         if mapped_ports:
@@ -99,15 +128,39 @@ class DockerWrapper(object):
             mv = dict([vm.split(':') for vm in mapped_volumes])
             volume_bindings = dict([(container_volume, {'bind':mv[container_volume]}) for container_volume in mv])
             volumes = mv.values()
-            
-        container = self._client.create_container(
-            image=image_id,
-            name=app_name,
-            ports = ports,
-            volumes = volumes,
-            host_config=docker.utils.create_host_config(
+
+        volumes_from = []
+        if linked_volumes:
+            volumes_from = [lv['app_name'] for lv in linked_volumes]
+
+        links = {}
+        if linked_apps:
+            links = dict([(la['app_name'], la['app_name']) for la in linked_apps])
+
+        c = None
+        container = None
+        kwargs = {
+            'image': image_id,
+            'name': app_name,
+            'ports': ports,
+            'volumes': volumes,
+            'volumes_from': volumes_from,
+            'environment': env_vars,
+            'host_config': docker.utils.create_host_config(
                 port_bindings=port_bindings,
-                binds=volume_bindings
+                binds=volume_bindings,
+                links=links
             )
-        )
-        return self._client.start(container=container.get('Id'))
+        }
+        
+        try:
+            container = self._client.create_container(**kwargs)
+            self.start_container(container)
+        except docker.errors.APIError as e:
+            if e.message.response.status_code == 404:
+                logging.warn('container not found locally, pulling')
+                self._client.pull(image_id)
+                container = self.create_container(**kwargs)
+                self.start_container(container)
+            else:
+                raise e
