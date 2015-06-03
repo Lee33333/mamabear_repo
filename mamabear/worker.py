@@ -196,3 +196,9 @@ class Worker(object):
         except Exception as e:
             logging.error(e)
             pass
+
+    def run_deployment(self, db, deployment):
+        encoded = deployment.encode_with_deps(db)
+        for host in deployment.hosts:
+            wrapper = DockerWrapper(host.hostname, host.port, self._config)
+            wrapper.deploy_with_deps(encoded)

@@ -201,6 +201,16 @@ class DeploymentController(object):
             'total': Deployment.count(cherrypy.request.db, app_name=app_name, image_tag=image_tag, environment=environment)
         }
 
+    @cherrypy.tools.json_out()
+    def run_deployment(self, app_name, image_tag, environment):
+        deployment = Deployment.get_by_app(cherrypy.request.db, app_name, image_tag=image_tag, environment=environment)
+        if deployment:
+            self.worker.run_deployment(cherrypy.request.db, deployment)
+            return deployment.encode()
+            
+        cherrypy.response.status = 404
+        return {'error': 'deployment configuration ({}:{},{}) not found'.format(app_name, image_tag, environment)}
+        
 class ImageController(object):
 
     @cherrypy.tools.json_out()

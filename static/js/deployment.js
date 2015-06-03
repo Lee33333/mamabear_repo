@@ -27,6 +27,16 @@ define([
         self.mappedPortsString = ko.observable('');
         self.mappedVolumesString = ko.observable('');
 
+        self.launch = function() {
+            $.ajax({
+                url: self.runPath()
+            }).done(function(json) {
+                console.log("Deployment succeeded");
+            }).fail(function() {
+                console.log("Failed to run deployment");
+            });
+        };
+        
         self.envVarList = ko.computed(function() {
             var result = [];
             for (var key in self.environmentVariables()) {
@@ -119,6 +129,10 @@ define([
             'test', 'prod'
         ]);
 
+        self.runPath = ko.computed(function() {
+            return '../mamabear/v1/deployment/'+self.appName()+'/'+self.imageTag()+'/'+self.environment()+'/run';
+        });
+        
         self.deploymentPath = ko.computed(function() {
             return '../mamabear/v1/deployment/'+self.appName()+'/'+self.imageTag()+'/'+self.environment();
         });
