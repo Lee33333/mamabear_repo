@@ -94,6 +94,16 @@ class DockerWrapper(object):
     def start_container(self, container):
         return self._client.start(container=container.get('Id'))
 
+    def deploy_with_deps(self, tree):
+        deployment = tree['deployment']
+        dependencies = tree['dependencies']
+        for dependency in dependencies:
+            self.deploy_with_deps(dependency)
+
+        logging.info("Deploying {}:{}".format(
+            deployment.get('app_name'), deployment.get('image_tag')))
+        self.deploy(deployment)
+        
     def run_with_deps(self, tree):
         deployment = tree['deployment']
         dependencies = tree['dependencies']
@@ -103,6 +113,15 @@ class DockerWrapper(object):
         logging.info("Launching deployment {}:{}".format(
             deployment.get('app_name'), deployment.get('image_tag')))
         self.run(deployment)
+
+    def deploy(self, d):
+        app_name = d['app_name']
+        try:
+            self.stop(app_name)
+            self.rm(app_name)
+        except Exception as e:
+            logging.warn(e)
+        self.run(d)
         
     def run(self, d):
         app_name = d['app_name']
