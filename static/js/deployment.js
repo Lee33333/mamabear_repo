@@ -61,9 +61,9 @@ define([
             };
 
             if (self.hosts() && self.hosts().length > 0) {
-                s['hosts'] = $.map(self.hosts(), function(host, i) {
+                s['hosts'] = $.unique($.map(self.hosts(), function(host, i) {
                     return host.hostname;
-                });
+                }));
             }
             
             if (self.links() && self.links().length > 0) {
@@ -77,6 +77,7 @@ define([
                         });
                     }
                 });
+                s['links'] = $.unique(s['links']);
             }
             
             if (self.volumes() && self.volumes().length > 0) {
@@ -90,6 +91,7 @@ define([
                         });
                     }
                 });
+                s['volumes'] = $.unique(s['volumes']);
             }
             
             if (self.environmentVariablesString() && self.environmentVariablesString() !== '') {                
@@ -244,14 +246,12 @@ define([
             data = {
                 'deployment': self.serialize()
             };
-            console.log(data);
             $.ajax({
                 type: 'POST',
                 data: ko.toJSON(data),
                 url: self.apiPath(),
                 contentType: 'application/json'
             }).done(function(json) {
-                console.log(json);
                 pager.navigate('#deployments/all');
             }).fail(function(json) {
                 console.log("Failed creating deployment");

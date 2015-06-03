@@ -95,15 +95,15 @@
              class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">          
         </div>
 
-        <div data-bind="page: {id: 'new_deployment', source: './templates/addDeployment.html', sourceLoaded: bindSelects, with: deployment}"
+        <div data-bind="page: {id: 'new_deployment', source: './templates/addDeployment.html', sourceLoaded: bindSelects, beforeShow: reset, with: deployment}"
              class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
         </div>
 
-        <div data-bind="page: {id: 'new_app', source: './templates/addApp.html', with: app}"
+        <div data-bind="page: {id: 'new_app', source: './templates/addApp.html', beforeShow: reset, with: app}"
              class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
         </div>
 
-        <div data-bind="page: {id: 'new_host', source: './templates/addHost.html', with: host}"
+        <div data-bind="page: {id: 'new_host', source: './templates/addHost.html', beforeShow: reset, with: host}"
              class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
         </div>
       </div>

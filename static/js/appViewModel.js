@@ -103,6 +103,16 @@ define([
             self.setPage = function(page) {
                 self.page(page);
             }
+
+            self.reset = function() {
+                self.app(new App());
+                self.host(new Host());
+                self.deployment(new Deployment());
+                $('#inputAppName').val(null).trigger("change");
+                $('#inputHosts').val(null).trigger("change");
+                $('#inputAppLinks').val(null).trigger("change");
+                $('#inputAppVolumes').val(null).trigger("change");
+            };
             
             self.getHost = function(page) {
                 h = new Host();
