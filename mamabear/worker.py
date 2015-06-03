@@ -1,5 +1,6 @@
 import logging
 import requests
+import threading
 from dateutil import tz
 from dateutil import parser
 from datetime import datetime
@@ -197,8 +198,19 @@ class Worker(object):
             logging.error(e)
             pass
 
-    def run_deployment(self, db, deployment):
+    def run_deployment(self, deployment_id):
+        thread = threading.Thread(target=self.launch_deployment, args=([deployment_id]))
+        thread.daemon = True
+        thread.start()
+        
+    def launch_deployment(self, deployment_id):
+        db = self.get_session(self.get_engine(self._config))
+        
+        deployment = db.query(Deployment).get(deployment_id)
         encoded = deployment.encode_with_deps(db)
+
         for host in deployment.hosts:
             wrapper = DockerWrapper(host.hostname, host.port, self._config)
             wrapper.deploy_with_deps(encoded)
+            
+        self.update_deployment_status(db, deployment)

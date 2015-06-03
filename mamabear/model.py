@@ -257,7 +257,7 @@ class Deployment(Base):
     containers = relationship("Container", backref="deployment")
     
     links = relationship("Image", secondary=deployment_links)
-    volumes = relationship("Image", secondary=deployment_volumes) 
+    volumes = relationship("Image", secondary=deployment_volumes)
     
     required_keys = ['image_tag', 'app_name', 'environment', 'status_endpoint']
 

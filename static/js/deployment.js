@@ -26,12 +26,12 @@ define([
         self.environmentVariablesString = ko.observable('');
         self.mappedPortsString = ko.observable('');
         self.mappedVolumesString = ko.observable('');
-
+        
         self.launch = function() {
             $.ajax({
                 url: self.runPath()
             }).done(function(json) {
-                console.log("Deployment succeeded");
+                console.log("Deployment launched");
             }).fail(function() {
                 console.log("Failed to run deployment");
             });
@@ -209,6 +209,7 @@ define([
                     });
 
                     self.environmentVariables(data.environment_variables);
+                    
                     if (data.hasOwnProperty('mapped_ports') && data.mapped_ports != '') {
                         self.mappedPorts(data.mapped_ports);
                     }
@@ -235,8 +236,10 @@ define([
                         self.parent(data.parent);
                     }
                     self.updateImageList();
+                    callback(self);
                 } else {
                     console.log("no deployment");
+                    callback(self);
                 }
             });
         };
