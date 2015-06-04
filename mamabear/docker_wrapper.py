@@ -12,6 +12,7 @@ class DockerWrapper(object):
         self.port = docker_port
         self.retry = retry # how many times to retry docker client requests
         self.registry_user = config.get('registry', 'user')
+        self.registry_pass = config.get('registry', 'password')
         
         self._tls_conf = docker.tls.TLSConfig(
             assert_hostname=False,
@@ -99,8 +100,8 @@ class DockerWrapper(object):
         return self._client_request('logs', container_id, stderr=stderr,
                                     stdout=stdout, stream=stream, tail=tail)
 
-    def pull(self, app_name):
-        return self._client_request('pull', app_name)
+    def pull(self, **kwargs):
+        return self._client_request('pull', **kwargs)
 
     def rm(self, container_id):
         return self._client_request('remove_container', container_id)
@@ -145,6 +146,7 @@ class DockerWrapper(object):
         
     def run(self, d):
         app_name = d['app_name']
+        image_tag = d['image_tag']
         image_id = '%s/%s:%s' % (self.registry_user, app_name, d['image_tag'])
         status_url = 'http://%s:%s/%s' % (self.host, d['status_port'], d['status_endpoint'])
         
@@ -198,7 +200,11 @@ class DockerWrapper(object):
         except docker.errors.APIError as e:
             if e.message.response.status_code == 404:
                 logging.warn('container not found locally, pulling')
-                self._client_request('pull', image_id)
+                self.pull(
+                    repository='{}/{}'.format(self.registry_user, app_name),
+                    tag=image_tag,
+                    auth_config={'username': self.registry_user, 'password': self.registry_pass}
+                )
                 container = self.create_container(**kwargs)
                 self.start_container(container)
             else:
