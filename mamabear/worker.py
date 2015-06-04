@@ -124,6 +124,11 @@ class Worker(object):
         """
         wrapper = DockerWrapper(host.hostname, host.port, self._config)
         host_container_info = []
+
+        # Keep track of containers that go away
+        previous_host_containers = dict([(container.id, container) for container in host.containers])
+        new_host_containers = set()
+        
         try:
             host_container_info = wrapper.state_of_the_universe()
         except Exception as e:
@@ -133,6 +138,7 @@ class Worker(object):
         
         for info in host_container_info:
             container = Container.get(db, info['id'])
+            new_host_containers.add(info['id'])
             if container:
                 logging.info("Found existing container {}, updating state to: {}".format(info['id'], info['state']))
                 container.state = info['state']
@@ -155,8 +161,14 @@ class Worker(object):
                     container.image = image
                 host.containers.append(container)
                 db.add(container)
-                db.add(host)
 
+        for c_id in previous_host_containers:
+            if c_id not in new_host_containers:
+                logging.info("Previous container {} not found on host, removing".format(c_id))
+                container = previous_host_containers[c_id]
+                db.delete(container)
+                
+        db.add(host)
         db.commit()
                         
     def update_all_containers(self, db):
