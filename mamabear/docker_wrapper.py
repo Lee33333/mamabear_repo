@@ -185,12 +185,12 @@ class DockerWrapper(object):
             'name': app_name,
             'ports': ports,
             'volumes': volumes,
-            'volumes_from': volumes_from,
             'environment': env_vars,
             'host_config': docker.utils.create_host_config(
                 port_bindings=port_bindings,
                 binds=volume_bindings,
-                links=links
+                links=links,
+                volumes_from=volumes_from
             )
         }
         
