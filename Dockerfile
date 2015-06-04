@@ -5,6 +5,8 @@ RUN apt-get update
 RUN apt-get install -y python-pip --fix-missing
 RUN apt-get install -y libpython2.7-dev
 RUN apt-get install -y libmysqlclient-dev
+RUN apt-get install -y libffi-dev
+RUN apt-get install -y libssl-dev
 
 RUN mkdir /etc/mamabear/
 COPY mamabear.cfg /etc/mamabear/mamabear.cfg

@@ -1,3 +1,4 @@
+import time
 import docker
 import requests
 import logging
@@ -6,9 +7,10 @@ logging.basicConfig(level=logging.INFO)
 
 class DockerWrapper(object):
 
-    def __init__(self, docker_host, docker_port, config):
+    def __init__(self, docker_host, docker_port, config, retry=3):
         self.host = docker_host
         self.port = docker_port
+        self.retry = retry # how many times to retry docker client requests
         self.registry_user = config.get('registry', 'user')
         
         self._tls_conf = docker.tls.TLSConfig(
@@ -20,6 +22,7 @@ class DockerWrapper(object):
             ))
         self._client = docker.Client(
             base_url='https://%s:%s' % (docker_host, docker_port),
+            timeout=10, # 10 second timeout
             tls=self._tls_conf
         )
 
@@ -68,31 +71,48 @@ class DockerWrapper(object):
                 data['command'] = ' '.join(detail['Config']['Cmd'])
             universe.append(data)
         return universe
+
+    def _client_request(self, method, *args, **kwargs):
+        """
+        Deal with the fact that the docker-py client has no
+        retry logic.
+        """
+        last_exception = None
+        _method = getattr(self._client, method)
+        for i in range(1, self.retry+1):
+            try:
+                return _method(*args, **kwargs)
+            except Exception as e:
+                logging.warn("Failed to run client method: {}, reason: [{}]".format(method, e.message))
+                time.sleep(5)
+                last_exception = e
+        else:
+            raise last_exception
             
     def ps(self, **kwargs):
-        return self._client.containers(**kwargs)
+        return self._client_request('containers', **kwargs)        
 
     def inspect(self, container_id):
-        return self._client.inspect_container(container_id)
+        return self._client_request('inspect_container', container_id)
         
     def logs(self, container_id, stderr=False, stdout=False, stream=False, tail=10):
-        return self._client.logs(
-            container_id, stderr=stderr, stdout=stdout, stream=stream, tail=tail)
+        return self._client_request('logs', container_id, stderr=stderr,
+                                    stdout=stdout, stream=stream, tail=tail)
 
     def pull(self, app_name):
-        return self._client.pull(app_name)
+        return self._client_request('pull', app_name)
 
     def rm(self, container_id):
-        return self._client.remove_container(container_id)
+        return self._client_request('remove_container', container_id)
 
     def stop(self, container_id):
-        return self._client.stop(container_id)
+        return self._client_request('stop', container_id)
 
     def create_container(self, **kwargs):
-        return self._client.create_container(**kwargs)
+        return self._client_request('create_container', **kwargs)
 
     def start_container(self, container):
-        return self._client.start(container=container.get('Id'))
+        return self._client_request('start', container=container.get('Id'))
 
     def deploy_with_deps(self, tree):
         deployment = tree['deployment']
@@ -173,12 +193,12 @@ class DockerWrapper(object):
         }
         
         try:
-            container = self._client.create_container(**kwargs)
+            container = self._client_request('create_container', **kwargs)
             self.start_container(container)
         except docker.errors.APIError as e:
             if e.message.response.status_code == 404:
                 logging.warn('container not found locally, pulling')
-                self._client.pull(image_id)
+                self._client_request('pull', image_id)
                 container = self.create_container(**kwargs)
                 self.start_container(container)
             else:

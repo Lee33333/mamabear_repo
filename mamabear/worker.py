@@ -1,3 +1,4 @@
+import time
 import logging
 import requests
 import threading
@@ -79,13 +80,13 @@ class Worker(object):
             db.add(app)
         db.commit()
                 
-    def update_deployment_containers(self, db, deployment):
+    def update_deployment_containers(self, db, deployment, config):
         """
         Update container state for all containers on the deployment's configured hosts.
         """
         for host in deployment.hosts:
             logging.info("Updating containers for host: {}".format(host.hostname))
-            self.update_host_containers(db, host)
+            self.update_host_containers(db, host, config)
 
         for container in self.containers_for_app_image(db, deployment.app_name, deployment.image_tag):
             logging.info("Found container {} with state: [{}], associated with deployment: {}, linking".format(
@@ -96,6 +97,22 @@ class Worker(object):
         db.add(deployment)
         db.commit()
 
+    def _check_app_status(self, url, timeout=10, retry=3):
+        last_exception = None
+        for attempt in range(1, retry+1):
+            try:
+                r = requests.get(url, timeout=timeout)
+                if r.ok:
+                    return 'up'
+                else:
+                    return 'down'
+            except Exception as e:
+                logging.warn("Failed to check status of: {}, reason: [{}]".format(url, e.message))
+                time.sleep(5)
+                last_exception = e
+        else:
+            raise last_exception
+            
     def update_deployment_status(self, db, deployment):
         """
         Update app status for all of the deployment's containers
@@ -106,23 +123,26 @@ class Worker(object):
                     container.host.hostname,
                     deployment.status_port,
                     deployment.status_endpoint)
-                r = requests.get(status_url)
+                
                 logging.info("Checking status of {} for container: {}".format(status_url, container.id))
-                if r.ok:
-                    container.status = 'up'
-                    logging.info("App for Container: {} is [up]".format(container.id))
-                else:
-                    container.status = 'down'
-                    logging.info("App for Container: {} is [down]".format(container.id))
+                try:
+                    status = self._check_app_status(status_url)
+                    logging.info("Got status of {} for container: {}".format(status, container.id))
+                    container.status = status
+                except Exception as e:
+                    logging.warn("Failed to check status, {}".format(e.message))
+                    container.status = 'down'                
             else:
-                container.status = 'down'
+                container.status = 'down'                
+            db.add(container)
+        db.commit()
         
-    def update_host_containers(self, db, host):
+    def update_host_containers(self, db, host, config):
         """
         For a given host, update the application status and container
         state for all containers.
         """
-        wrapper = DockerWrapper(host.hostname, host.port, self._config)
+        wrapper = DockerWrapper(host.hostname, host.port, config)
         host_container_info = []
 
         # Keep track of containers that go away
@@ -171,13 +191,13 @@ class Worker(object):
         db.add(host)
         db.commit()
                         
-    def update_all_containers(self, db):
+    def update_all_containers(self, db, config):
         """
         Updates every app and container state on all hosts
         """
         for host in db.query(Host).all():
             logging.info("Updating containers for host: {}".format(host.hostname))
-            self.update_host_containers(db, host)
+            self.update_host_containers(db, host, config)
                     
     def update_all(self):
         try:
@@ -194,7 +214,7 @@ class Worker(object):
                 
                 for deployment in app.deployments:
                     try:
-                        self.update_deployment_containers(db, deployment)
+                        self.update_deployment_containers(db, deployment, self._config)
                         self.update_deployment_status(db, deployment)
                     except Exception as e:
                         logging.error(e)
@@ -202,7 +222,7 @@ class Worker(object):
                     
             logging.info("Updating container information")
             try:
-                self.update_all_containers(db)
+                self.update_all_containers(db, self._config)
             except Exception as e:
                 logging.error(e)
                 db.rollback()
@@ -220,9 +240,16 @@ class Worker(object):
         
         deployment = db.query(Deployment).get(deployment_id)
         encoded = deployment.encode_with_deps(db)
-
+        logging.info("Launching deployment {}:{}/{}".format(deployment.app_name, deployment.image_tag, deployment.environment))
         for host in deployment.hosts:
+            logging.info("Launching deployment {}:{}/{} on {}".format(deployment.app_name, deployment.image_tag, deployment.environment, host.alias))
             wrapper = DockerWrapper(host.hostname, host.port, config)
             wrapper.deploy_with_deps(encoded)
-            
-        self.update_deployment_status(db, deployment)
+
+        try:
+            self.update_deployment_containers(db, deployment, config)
+            self.update_deployment_status(db, deployment)            
+        except Exception as e:
+            logging.error(e)
+            db.rollback()
+        logging.info("Finished deployment {}:{}/{}".format(deployment.app_name, deployment.image_tag, deployment.environment))
