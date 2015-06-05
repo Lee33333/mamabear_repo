@@ -33,7 +33,7 @@ def get_app():
     with d.mapper.submapper(path_prefix='/mamabear/v1', controller='mamabear-hosts') as m:
         m.connect('hosts', '/host', action='list_hosts', conditions=dict(method=['GET']))
         m.connect('hosts_new', '/host', action='add_host', conditions=dict(method=['POST']))
-        m.connect('hosts_delete', '/host/{hostname}', action='delete_host', conditions=dict(method=['DELETE']))
+        m.connect('hosts_delete', '/host/{alias}', action='delete_host', conditions=dict(method=['DELETE']))
 
     with d.mapper.submapper(path_prefix='/mamabear/v1', controller='mamabear-images') as m:
         m.connect('images', '/image', action='list_images', conditions=dict(method=['GET']))

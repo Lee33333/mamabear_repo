@@ -33,13 +33,9 @@ class HostController(object):
         return {"error":"host with name {0} not found".format(hostname)}
 
     @cherrypy.tools.json_out()
-    def delete_host(self, hostname=None):
-        if not hostname:
-            cherrypy.response.status = 400
-            return {"error":"no hostname specified"}
-            
-        deleted = Host.delete(cherrypy.request.db, hostname)
-        return {"deleted":deleted, "name":hostname}
+    def delete_host(self, alias):            
+        deleted = Host.delete_by_alias(cherrypy.request.db, alias)
+        return {"deleted":deleted, "name":alias}
         
     @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()

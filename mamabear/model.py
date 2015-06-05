@@ -20,9 +20,10 @@ class Host(Base):
     VALID_STATUS = ['up', 'down']
 
     @staticmethod
-    def delete(session, hostname):
-        h = Host.get_by_name(session, hostname)
-        if h:
+    def delete_by_alias(session, alias):
+        q = session.query(Host).filter(Host.alias == alias).limit(1)
+        if q.count() == 1:
+            h = q.one() 
             for container in h.containers:
                 session.delete(container)
             session.delete(h)
