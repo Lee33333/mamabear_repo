@@ -15,6 +15,10 @@ define([
         self.asgName = ko.observable();
         self.containers = ko.observableArray([]);
         self.status = ko.observable();
+
+        self.deletePath = ko.computed(function() {
+            return apiPath+'/'+self.alias();
+        });
         
         self.hostPath = ko.computed(function() {
             return apiPath+'?hostname='+self.hostname();
@@ -45,6 +49,17 @@ define([
             }
             return container;
         };
+
+        self.deleteHost = function() {
+            $.ajax({
+                type: 'DELETE',
+                url: self.deletePath()
+            }).done(function(json) {
+                pager.navigate('#deployments/all');
+            }).fail(function() {
+                console.log("Failed deleting host");
+            });
+        };
         
         self.create = function() {
             data = {
@@ -60,7 +75,6 @@ define([
                 url: apiPath,
                 contentType: 'application/json'
             }).done(function(json) {
-                console.log(json);
                 self.get(function(h) {
                     pager.navigate('#hosts/all');
                 });                

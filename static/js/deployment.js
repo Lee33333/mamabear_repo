@@ -127,14 +127,14 @@ define([
         
         self.envOptions = ko.observableArray([
             'test', 'prod'
-        ]);
-
-        self.runPath = ko.computed(function() {
-            return '../mamabear/v1/deployment/'+self.appName()+'/'+self.imageTag()+'/'+self.environment()+'/run';
-        });
+        ]);        
         
         self.deploymentPath = ko.computed(function() {
             return '../mamabear/v1/deployment/'+self.appName()+'/'+self.imageTag()+'/'+self.environment();
+        });
+
+        self.runPath = ko.computed(function() {
+            return self.deploymentPath()+'/run';
         });
         
         self.apiPath = ko.computed(function() {
@@ -193,6 +193,16 @@ define([
             return container;
         };
 
+        self.deleteDeployment = function() {
+            $.ajax({
+                type: 'DELETE',
+                url: self.deploymentPath()
+            }).done(function(json) {
+                pager.navigate('/');
+            }).fail(function() {
+                console.log("Failed deleting deployment");
+            });
+        };
         
         self.get = function(callback) {
             $.getJSON(self.deploymentPath(), function (data) {

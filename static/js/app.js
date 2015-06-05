@@ -23,6 +23,10 @@ define([
                 return image.tag();
             });
         });
+
+        self.deletePath = ko.computed(function() {
+            return api_path+'/'+self.name();
+        });
         
         self.imagesPath = ko.computed(function() {
             return api_path+'/'+self.name()+'/images';
@@ -104,6 +108,17 @@ define([
             return deployment;
         };
 
+        self.deleteApp = function() {
+            $.ajax({
+                type: 'DELETE',
+                url: self.deletePath()
+            }).done(function(json) {
+                pager.navigate('#deployments/all');
+            }).fail(function() {
+                console.log("Failed deleting app");
+            });
+        };
+        
         self.create = function() {
             console.log('creating new app');
             self.status('loading');
