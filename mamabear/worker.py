@@ -79,7 +79,7 @@ class Worker(object):
             db.add(image)
             db.add(app)
         db.commit()
-                
+
     def update_deployment_containers(self, db, deployment, config):
         """
         Update container state for all containers on the deployment's configured hosts.
@@ -112,7 +112,11 @@ class Worker(object):
                 last_exception = e
         else:
             raise last_exception
-            
+
+    def update_deployment(self, db, deployment):
+        self.update_deployment_containers(db, deployment, self._config)
+        self.update_deployment_status(db, deployment)
+                        
     def update_deployment_status(self, db, deployment):
         """
         Update app status for all of the deployment's containers
@@ -214,8 +218,7 @@ class Worker(object):
                 
                 for deployment in app.deployments:
                     try:
-                        self.update_deployment_containers(db, deployment, self._config)
-                        self.update_deployment_status(db, deployment)
+                        self.update_deployment(db, deployment)
                     except Exception as e:
                         logging.error(e)
                         db.rollback()

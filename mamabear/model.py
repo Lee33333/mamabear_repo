@@ -18,7 +18,17 @@ class Host(Base):
     containers = relationship("Container", backref="host")
 
     VALID_STATUS = ['up', 'down']
-    
+
+    @staticmethod
+    def delete(session, hostname):
+        h = Host.get_by_name(session, hostname)
+        if h:
+            for container in h.containers:
+                session.delete(container)
+            session.delete(h)
+            return True
+        return False
+            
     @staticmethod
     def create(session, data):
         hostname = data.get('hostname')
@@ -263,6 +273,20 @@ class Deployment(Base):
 
     def name(self):
         return "%s:%s, %s" % (self.app_name, self.image_tag, self.environment)
+
+    @staticmethod
+    def delete(session, app_name, image_tag, environment):
+        deployment = Deployment.get_by_app(session, app_name, image_tag, environment)
+        if deployment:
+            for ev in deployment.env_vars:
+                session.delete(ev)
+            for link in deployment.links:
+                session.delete(link)
+            for volume in deployment.volumes:
+                session.delete(volume)
+            session.delete(deployment)
+            return True
+        return False
         
     @staticmethod    
     def list_query(session, app_name=None, image_tag=None, environment=None):

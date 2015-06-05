@@ -3,6 +3,10 @@ from mamabear.model import *
 
 class HostController(object):
 
+    #
+    # FIXME - need to do a full fledged list with filters and
+    # sorting now that we have more fields.
+    #
     @cherrypy.tools.json_out()
     def list_hosts(self, hostname=None):
         if hostname:
@@ -28,6 +32,15 @@ class HostController(object):
         cherrypy.response.status = 404
         return {"error":"host with name {0} not found".format(hostname)}
 
+    @cherrypy.tools.json_out()
+    def delete_host(self, hostname=None):
+        if not hostname:
+            cherrypy.response.status = 400
+            return {"error":"no hostname specified"}
+            
+        deleted = Host.delete(cherrypy.request.db, hostname)
+        return {"deleted":deleted, "name":hostname}
+        
     @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()
     def add_host(self):
@@ -137,8 +150,7 @@ class AppController(object):
             if deployment:
                 try:
                     self.worker.update_app_images(cherrypy.request.db, App.get(cherrypy.request.db, app))
-                    self.worker.update_deployment_containers(cherrypy.request.db, deployment)
-                    self.worker.update_deployment_status(cherrypy.request.db, deployment)
+                    self.worker.update_deployment(cherrypy.request.db, deployment)
                 except Exception as e:
                     print e
                     return {'warn': "Failed updating images and running containers"}
@@ -201,6 +213,11 @@ class DeploymentController(object):
             'total': Deployment.count(cherrypy.request.db, app_name=app_name, image_tag=image_tag, environment=environment)
         }
 
+    @cherrypy.tools.json_out()
+    def delete_deployment(self, app_name, image_tag, environment):
+        deleted = Deployment.delete(cherrypy.request.db, app_name, image_tag, environment)
+        return {'deleted': deleted, 'deployment':'{}:{}/{}'.format(app_name, image_tag, environment)}
+        
     @cherrypy.tools.json_out()
     def run_deployment(self, app_name, image_tag, environment):
         deployment = Deployment.get_by_app(cherrypy.request.db, app_name, image_tag=image_tag, environment=environment)
