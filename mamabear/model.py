@@ -28,7 +28,7 @@ class Host(Base):
             session.delete(h)
             return True
         return False
-            
+
     @staticmethod
     def create(session, data):
         hostname = data.get('hostname')
@@ -92,7 +92,17 @@ class Image(Base):
     tag = Column(String(200), index=True)
     app_name = Column(String(200), ForeignKey("apps.name"), index=True)
     containers = relationship("Container", backref="image")
-            
+
+    @staticmethod
+    def delete(session, image_id):
+        image = Image.get(session, image_id)
+        if image:
+            for container in image.containers:
+                session.delete(container)
+            session.delete(image)
+            return True
+        return False
+        
     @staticmethod
     def get(session, image_id):
         return session.query(Image).get(image_id)
@@ -191,6 +201,18 @@ class App(Base):
     deployments = relationship("Deployment", backref="app")
     images = relationship("Image", backref="app")
 
+    @staticmethod
+    def delete(session, name):
+        app = App.get(session, name)
+        if app:
+            for d in app.deployments:
+                Deployment.delete(session, d.app_name, d.image_tag, d.environment)
+            for i in app.images:
+                Image.delete(session, i.id)
+            session.delete(app)
+            return True
+        return False
+        
     @staticmethod
     def create(session, name):
         if name:

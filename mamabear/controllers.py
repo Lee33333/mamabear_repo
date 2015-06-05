@@ -81,6 +81,11 @@ class AppController(object):
                 'total': App.count(cherrypy.request.db, name=name)}        
 
     @cherrypy.tools.json_out()
+    def delete_app(self, name):
+        deleted = App.delete(cherrypy.request.db, name)    
+        return {"deleted":deleted, "name": name}
+        
+    @cherrypy.tools.json_out()
     def app_images(self, name):
         app = App.get(cherrypy.request.db, name)
         if app:
