@@ -302,11 +302,7 @@ class Deployment(Base):
         deployment = Deployment.get_by_app(session, app_name, image_tag, environment)
         if deployment:
             for ev in deployment.env_vars:
-                session.delete(ev)
-            for link in deployment.links:
-                session.delete(link)
-            for volume in deployment.volumes:
-                session.delete(volume)
+                session.delete(ev)                
             session.delete(deployment)
             return True
         return False

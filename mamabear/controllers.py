@@ -70,7 +70,7 @@ class HostController(object):
         return {'error': 'malformed request, request body must include host data'}
         
 class AppController(object):
-    
+        
     @cherrypy.tools.json_out()
     def list_apps(self, name=None):
         return {'hits': App.list(cherrypy.request.db, name=name),
