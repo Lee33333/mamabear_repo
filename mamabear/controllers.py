@@ -1,6 +1,7 @@
 import cherrypy
 from mamabear.model import *
 
+
 class HostController(object):
 
     #
@@ -70,7 +71,7 @@ class HostController(object):
         return {'error': 'malformed request, request body must include host data'}
         
 class AppController(object):
-        
+
     @cherrypy.tools.json_out()
     def list_apps(self, name=None):
         return {'hits': App.list(cherrypy.request.db, name=name),
@@ -106,6 +107,17 @@ class AppController(object):
 
         cherrypy.response.status = 404
         return {"error":"app with name {0} not found".format(name)}
+
+    @cherrypy.tools.json_out()
+    def refresh_images(self, name):
+        app = App.get(cherrypy.request.db, name)
+        try:
+            self.worker.update_app_images(cherrypy.request.db, app)
+        except Exception as e:
+            cherrypy.response.status = 500
+            return {'error': e.message} 
+        return app.encode()    
+
 
     @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()

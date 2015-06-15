@@ -28,6 +28,10 @@ define([
             return api_path+'/'+self.name();
         });
         
+        self.refresh = ko.computed(function() {
+            return api_path+'/'+self.name()+'/images/refresh';
+        });
+        
         self.imagesPath = ko.computed(function() {
             return api_path+'/'+self.name()+'/images';
         });
@@ -48,6 +52,8 @@ define([
             }
             return image;
         };
+
+
         
         self.new_container = function(data) {
             container = new Container();
@@ -118,6 +124,17 @@ define([
                 console.log("Failed deleting app");
             });
         };
+
+        self.refreshImages = function() {
+            $.ajax({
+                type:'GET',
+                url: self.refresh()
+            }).done(function(json) {
+                self.get(function(app){});
+            }).fail(function() {
+                console.log("Failed to refresh");
+            });
+        };
         
         self.create = function() {
             console.log('creating new app');
@@ -128,7 +145,7 @@ define([
                 }
             };
             $.ajax({
-                type: 'POST',
+                type:'POST',
                 data: ko.toJSON(data),
                 url: api_path,
                 contentType: 'application/json'
@@ -190,6 +207,7 @@ define([
                     $('#app-deployments').DataTable();
                     $('#app-images').DataTable();
                 });
+
             }
         } 
     }
