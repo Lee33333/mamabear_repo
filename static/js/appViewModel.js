@@ -65,9 +65,14 @@ define([
                         dataType: 'json',
                         delay: 250,
                         data: function(params) {
-                            return {
-                                app_name: params.term
-                            }
+                            var splits = params.term.split(':');
+                            var r = {};
+                            var app_name = splits[0];
+                            r.app_name = splits[0];
+                            if (splits.length > 1) {
+                                r.image_tag = splits[1];
+                            }                                
+                            return r;
                         },
                         processResults: function(data, pg) {
                             return {
