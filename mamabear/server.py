@@ -48,6 +48,7 @@ def get_app():
         m.connect('apps', '/app', action='list_apps', conditions=dict(method=['GET']))
         m.connect('apps_new', '/app', action='add_app', conditions=dict(method=['POST']))
         m.connect('apps_delete', '/app/{name}', action='delete_app', conditions=dict(method=['DELETE']))
+        m.connect('refresh', '/app/{name}/images/refresh', action='refresh_images', conditions=dict(method=['GET']))
         m.connect('images', '/app/{name}/images', action='app_images', conditions=dict(method=['GET']))
         m.connect('deployments', '/app/{name}/deployments', action='app_deployments', conditions=dict(method=['GET']))
         m.connect('deployments_new', '/app/{name}/deployments', action='add_app_deployment', conditions=dict(method=['POST']))
