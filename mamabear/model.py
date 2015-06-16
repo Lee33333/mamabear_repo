@@ -415,6 +415,7 @@ class Deployment(Base):
         ports = self.mapped_ports.split(',') if self.mapped_ports else []
         volumes = self.mapped_volumes.split(',') if self.mapped_volumes else []
         return {
+            'id': self.id,
             'environment': self.environment,
             'parent': self.parent_id,
             'image_tag': self.image_tag,
