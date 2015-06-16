@@ -25,7 +25,7 @@
     <![endif]-->
     <script src="./vendor/js/require-2.1.17.min.js"></script>
     <script>
-        requirejs.config({ baseUrl: './js', paths: {
+        requirejs.config({ urlArgs: "bust=" + (new Date()).getTime(), baseUrl: './js', paths: {
             'text': '../vendor/js/require-text',
             'bootstrap': '../bootstrap/js/bootstrap.min',
             'moment': '../vendor/js/moment.min',
@@ -95,7 +95,7 @@
              class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">          
         </div>
 
-        <div data-bind="page: {id: 'new_deployment', source: './templates/addDeployment.html', sourceLoaded: bindSelects, beforeShow: reset, with: deployment}"
+        <div data-bind="page: {id: 'new_deployment', source: './templates/addDeployment.html', sourceLoaded: bindSelects, with: deployment}"
              class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
         </div>
 

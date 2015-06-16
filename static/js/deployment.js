@@ -151,21 +151,23 @@ define([
         
         self.appName.subscribe(function (newName) {
             if (newName) {
-                self.appName(newName);
-                self.updateImageList(function() {});
+                self.updateImageList();
+            }
+        }, null, "afterChange");
+
+        self.updateImageList = ko.computed(function() {
+            if (self.appName()) {
+                var appName = self.appName();
+                $.getJSON(self.appImagesPath(), function(data) {
+                    if (data) {
+                        self.imageList.removeAll();
+                        $.each(data[appName]['images'], function(i, image) {
+                            self.imageList.push(image.tag);
+                        });
+                    }
+                });
             }
         });
-
-        self.updateImageList = function() {
-            $.getJSON(self.appImagesPath(), function(data) {
-                if (data) {
-                    self.imageList.removeAll();
-                    $.each(data[self.appName()]['images'], function(i, image) {
-                        self.imageList.push(image.tag);
-                    });
-                }
-            })
-        };
 
         self.new_image = function(data) {
             image = new Image();
@@ -193,6 +195,38 @@ define([
             return container;
         };
 
+        self.newFromExisting = function(appViewModel) {
+            appViewModel.deployment().appName(self.appName());
+            appViewModel.deployment().imageTag(self.imageTag());
+            appViewModel.deployment().environment(self.environment());
+            appViewModel.deployment().statusEndpoint(self.statusEndpoint());
+            appViewModel.deployment().statusPort(self.statusPort());
+            appViewModel.deployment().links(self.links());
+            appViewModel.deployment().volumes(self.volumes());
+            
+            if (self.environmentVariables()) {
+                appViewModel.deployment().environmentVariablesString($.map(self.envVarList(), function(kv, i) {
+                    return kv.name+"="+kv.value 
+                }).join(","));
+            }
+
+            if (self.mappedPorts()) {
+                appViewModel.deployment().mappedPortsString(self.mappedPorts().join(","));
+            }
+
+            if (self.mappedVolumes()) {
+                appViewModel.deployment().mappedVolumesString(self.mappedVolumes().join(","));
+            }
+            
+            pager.navigate('#new_deployment');
+            
+            // This is a dirty hack; trigger select2 changes isn't working
+            $('#select2-inputAppName-container').text(self.appName());
+            $('#inputAppName').append("<option value='"+self.appName()+"'>"+self.appName()+"</option>")
+            $('#inputAppName').val(self.appName()).trigger("change");
+            
+        };
+        
         self.deleteDeployment = function() {
             $.ajax({
                 type: 'DELETE',
