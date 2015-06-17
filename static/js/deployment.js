@@ -8,6 +8,7 @@ define([
     function Deployment(page) {        
         var self = this;
         
+        self.id = ko.observable();
         self.appName = ko.observable();
         self.imageTag = ko.observable();
         self.environment = ko.observable();
@@ -67,7 +68,8 @@ define([
                 'status_port': self.statusPort(),
                 'mapped_ports': self.mappedPorts(),
                 'mapped_volumes': self.mappedVolumes(),
-                'environment_variables': self.environmentVariables()
+                'environment_variables': self.environmentVariables(),
+                'parent': self.parent()
             };
 
             if (self.hosts() && self.hosts().length > 0) {
@@ -196,6 +198,7 @@ define([
         };
 
         self.newFromExisting = function(appViewModel) {
+            appViewModel.deployment().parent(self.id());
             appViewModel.deployment().appName(self.appName());
             appViewModel.deployment().imageTag(self.imageTag());
             appViewModel.deployment().environment(self.environment());
@@ -245,6 +248,7 @@ define([
                     self.imageTag(data.image_tag);
                     self.appName(data.app_name);
                     self.hosts(data.hosts);
+                    self.id(data.id);
                     
                     console.log(data);
                     self.containers.removeAll();
