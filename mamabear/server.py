@@ -41,6 +41,8 @@ def get_app():
     with d.mapper.submapper(path_prefix='/mamabear/v1', controller='mamabear-deployments') as m:
         m.connect('deployments_all', '/deployment', action='list_deployments', conditions=dict(method=['GET']))
         m.connect('deployment', '/deployment/{app_name}/{image_tag}/{environment}', action='get_deployment', conditions=dict(method=['GET']))
+        #create an endpoint that can be hit with the run id to get the status from the database
+        m.connect('get_run_status', '/deployment/{app_name}/{image_tag}/{environment}/status', action='get_status', conditions=dict(method=['GET']))
         m.connect('run_deployment', '/deployment/{app_name}/{image_tag}/{environment}/run', action='run_deployment')
         m.connect('delete_deployment', '/deployment/{app_name}/{image_tag}/{environment}', action='delete_deployment', conditions=dict(method=['DELETE']))
 

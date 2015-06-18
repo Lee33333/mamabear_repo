@@ -3,9 +3,24 @@ from sqlalchemy.sql.expression import func
 from sqlalchemy.orm import relationship, backref, load_only
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import ForeignKey, ForeignKeyConstraint, Table
-from sqlalchemy import asc, desc, or_, and_, not_, CHAR, TIMESTAMP, Text, DateTime, Column, BigInteger, Integer, String
+from sqlalchemy import asc, desc, or_, and_, not_, CHAR, TIMESTAMP, Text, DateTime, Column, BigInteger, Integer, String, VARBINARY
 
 Base = declarative_base()
+
+class DeploymentRun(Base):
+    __tablename__ = "deployment_runs"
+
+
+    run_id = Column(CHAR(36), primary_key=True)
+    deployment_id = Column(Integer, ForeignKey("deployments.id"))
+    deployment_run_status = Column(String(50))
+    launched_at = Column(DateTime)
+    finished_at = Column(DateTime)
+    #is this syntax correct?
+    deployments = relationship("Deployment", backref="deployment_run_status")
+
+
+
 
 class Host(Base):
     __tablename__ = "hosts"
@@ -458,3 +473,5 @@ class AWSAutoScalingGroup(Base):
     @staticmethod
     def get(session, group_name):
         return session.query(AWSAutoScalingGroup).get(group_name)
+
+

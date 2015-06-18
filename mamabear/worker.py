@@ -2,6 +2,8 @@ import time
 import logging
 import requests
 import threading
+from datetime import datetime
+from uuid import uuid4
 from dateutil import tz
 from dateutil import parser
 from datetime import datetime
@@ -234,12 +236,25 @@ class Worker(object):
             pass
 
     def run_deployment(self, deployment_id):
-        thread = threading.Thread(target=self.launch_deployment, args=([deployment_id, self._config]))
+        #create uuid, pass to launch deployment
+        #generates a random uuid, do we need a not random one?
+        uuid = str(uuid4())
+        launched_at = datetime.now()
+
+        thread = threading.Thread(target=self.launch_deployment, args=([deployment_id, self._config, uuid, launched_at]))
         thread.daemon = True
         thread.start()
+        ###return the time uu id
+
+    #pass in run id
+    #I think this is where the actual first entry in database gets created with a default status of running
+    def launch_deployment(self, deployment_id, config, uuid, launched_at):
         
-    def launch_deployment(self, deployment_id, config):
         db = self.get_session(self.get_engine(config))
+        print "*"*30
+        new_run = DeploymentRun(run_id=uuid, deployment_id=deployment_id, deployment_run_status="started", launched_at=launched_at)
+        db.add(new_run)
+        db.commit()
         
         deployment = db.query(Deployment).get(deployment_id)
         encoded = deployment.encode_with_deps(db)
@@ -249,10 +264,18 @@ class Worker(object):
             wrapper = DockerWrapper(host.hostname, host.port, config)
             wrapper.deploy_with_deps(encoded)
 
+
         try:
             self.update_deployment_containers(db, deployment, config)
-            self.update_deployment_status(db, deployment)            
+            self.update_deployment_status(db, deployment)  
+
+            q = db.query(DeploymentRun).filter(DeploymentRun.run_id == uuid)
+            print q.launched_at  
+            print "!"*10        
         except Exception as e:
             logging.error(e)
             db.rollback()
+
+
         logging.info("Finished deployment {}:{}/{}".format(deployment.app_name, deployment.image_tag, deployment.environment))
+        #update status to actual status in database, don't forget to commit it
