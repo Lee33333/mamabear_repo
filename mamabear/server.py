@@ -50,6 +50,7 @@ def get_app():
         m.connect('apps_delete', '/app/{name}', action='delete_app', conditions=dict(method=['DELETE']))
         m.connect('refresh', '/app/{name}/images/refresh', action='refresh_images', conditions=dict(method=['GET']))
         m.connect('images', '/app/{name}/images', action='app_images', conditions=dict(method=['GET']))
+        m.connect('parents', '/app/{name}/parents', action='app_parents', conditions=dict(method=['GET']))
         m.connect('deployments', '/app/{name}/deployments', action='app_deployments', conditions=dict(method=['GET']))
         m.connect('deployments_new', '/app/{name}/deployments', action='add_app_deployment', conditions=dict(method=['POST']))
         m.connect('deployment_hosts', '/app/{name}/deployments/{image_tag}/{environment}', action='add_deployment_hosts', conditions=dict(method=['PUT']))

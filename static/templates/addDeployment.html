@@ -15,6 +15,10 @@
           <select style="width: 100%" data-bind="value: appName" required="true" class="form-control" id="inputAppName"></select>
         </div>
         <div class="form-group">
+          <label for="inputParent">Choose optional parent</label>
+          <select data-bind="options: parentList, value: parentTag" required="false" class="form-control" id="inputParent"></select>
+        </div>
+        <div class="form-group">
           <label for="inputImage">Choose existing image</label>
           <select data-bind="options: imageList, value: imageTag" required="true" class="form-control" id="inputImage"></select>
         </div>

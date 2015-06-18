@@ -94,6 +94,7 @@ class AppController(object):
 
         cherrypy.response.status = 404
         return {"error":"app with name {0} not found".format(name)}
+        
 
     @cherrypy.tools.json_out()
     def app_deployments(self, name):

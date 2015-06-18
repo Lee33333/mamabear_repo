@@ -58,6 +58,19 @@ define([
                     },
                     minimumInputLength: 0
                 };
+
+                // var parentBindArgs = {
+                //     ajax:{
+                //         url. self.????,
+                //         dataType: 'json',
+                //         delay: 250,
+                //         data: function(params)
+                //         {   
+
+                //         };
+                //     }
+                //     minimumInputLength: 1
+                // };
                 
                 var imageBindArgs = {
                     ajax: {
@@ -103,7 +116,20 @@ define([
                 $('#inputAppVolumes').on('select2:select', function(e) {
                     self.deployment().volumes.push(e.params.data.text);
                 });
-            }
+            //     $('#inputParent').select2(parentBindArgs);
+            //     $('#inputParent').on('select2:select', function(e) {
+            //         self.deployment().parent(e.params.data.id);
+            //         var text = e.params.data.text; // appname:imagetag/environment
+
+            //         self.deployment().appName()
+            //         // imagetag
+            //         // environment
+            //         self.deployment().get(function(data) {});
+
+            //     //input parent...
+            //     });
+
+            // }
             
             self.setPage = function(page) {
                 self.page(page);
