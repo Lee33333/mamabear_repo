@@ -160,13 +160,13 @@ class DockerWrapper(object):
         ports = []
         port_bindings = {}
         if mapped_ports:
-            port_bindings = dict([[int(p) for p in pm.split(':')] for pm in mapped_ports])
+            port_bindings = dict([[int(p) for p in pm.split(':')] for pm in mapped_ports if pm and len(pm.split(':')) == 2])
             ports = port_bindings.keys()
 
         volumes = []
         volume_bindings = {}
         if mapped_volumes:
-            mv = dict([vm.split(':') for vm in mapped_volumes])
+            mv = dict([vm.strip().split(':') for vm in mapped_volumes if vm and len(vm.split(':')) == 2])
             volume_bindings = dict([(container_volume, {'bind':mv[container_volume]}) for container_volume in mv])
             volumes = mv.values()
 
