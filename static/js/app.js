@@ -17,7 +17,10 @@ define([
         self.deployments = ko.observableArray([]);
         self.images = ko.observableArray([]);
         self.status = ko.observable('new');
-                
+
+        self.deploymentsTable = ko.observable();
+        self.imagesTable = ko.observable();
+        
         self.imageList = ko.computed(function() {
             return $.map(self.images(), function(image, i) {
                 return image.tag();
@@ -126,6 +129,8 @@ define([
         };
 
         self.refreshImages = function() {
+            // FIXME - We'd like to update DOM in some way
+            // on successful refresh so user is aware of it.            
             $.ajax({
                 type:'GET',
                 url: self.refresh()
@@ -192,7 +197,13 @@ define([
         // Can we do the callback twice?
         self.get = function(callback) {
             self.getImages(function() {
+                if (self.imagesTable()) {
+                    self.imagesTable().draw();
+                }
                 self.getDeployments(function() {
+                    if (self.deploymentsTable()) {
+                        self.deploymentsTable().draw();
+                    }
                     callback(self);
                 });
             });
@@ -204,8 +215,8 @@ define([
                 var appName = page.page.id();
                 self.name(appName);
                 self.get(function(app) {
-                    $('#app-deployments').DataTable();
-                    $('#app-images').DataTable();
+                    self.deploymentsTable($('#app-deployments').DataTable());
+                    self.imagesTable($('#app-images').DataTable());
                 });
 
             }
