@@ -21,7 +21,7 @@ define([
         self.volumes = ko.observableArray([]);
         self.containers = ko.observableArray([]);
         self.environmentVariables = ko.observable({});
-        self.parent = ko.observable('');
+        self.parent = ko.observable();
         self.imageList = ko.observableArray([]);        
 
         self.environmentVariablesString = ko.observable('');

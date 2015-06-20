@@ -277,7 +277,7 @@ class Deployment(Base):
     image_tag = Column(String(200), nullable=False, index=True)
     app_name = Column(String(200), ForeignKey("apps.name"), index=True, nullable=False)
     environment = Column(String(4), index=True, nullable=False)
-    status_endpoint = Column(String(200), nullable=False)
+    status_endpoint = Column(String(200), nullable=False, default='/')
     status_port = Column(Integer)
     mapped_ports = Column(Text)
     mapped_volumes = Column(Text)
@@ -292,11 +292,91 @@ class Deployment(Base):
     links = relationship("Image", secondary=deployment_links)
     volumes = relationship("Image", secondary=deployment_volumes)
     
-    required_keys = ['image_tag', 'app_name', 'environment', 'status_endpoint']
+    required_keys = ['image_tag', 'app_name', 'environment']
 
     def name(self):
         return "%s:%s, %s" % (self.app_name, self.image_tag, self.environment)
 
+    @staticmethod
+    def update_by_app(session, app_name, image_tag, environment, data):
+        deployment = Deployment.get_by_app(session, app_name,
+                                           image_tag=image_tag,
+                                           environment=environment)
+        if deployment:
+            Deployment.update_with_data(session, deployment, data)
+            return True
+        return False
+        
+    @staticmethod
+    def update_with_data(session, deployment, data):
+        if 'status_endpoint' in data:
+            deployment.status_endpoint = data['status_endpoint']
+        if not deployment.status_endpoint:
+            deployment.status_endpoint = '/'
+            
+        if 'status_port' in data:
+            deployment.status_port = data['status_port']
+
+        #
+        # FIXME = the linked hosts and volumes (below) should
+        # be deployments not images
+        #
+        if 'links' in data:
+            for link in data['links']:
+                image = Image.find_by_name_and_tag(
+                    session, link['app_name'], link['image_tag'])
+                if image:
+                    deployment.links.append(image)
+                        
+        if 'volumes' in data:
+            for vol in data['volumes']:
+                image = Image.find_by_name_and_tag(
+                    session, link['app_name'], link['image_tag'])
+                if image:
+                    deployment.volumes.append(image)
+
+        #
+        #
+        #
+        
+        if 'mapped_ports' in data and len(data['mapped_ports']) > 0:
+            # FIXME: do some validation of structure here
+            deployment.mapped_ports = ','.join(data['mapped_ports'])
+            
+        if 'mapped_volumes' in data and len(data['mapped_volumes']) > 0:
+            # FIXME: do some validation of structure here
+            deployment.mapped_volumes = ','.join(data['mapped_volumes'])
+        if 'parent' in data:
+            deployment.parent_id = data['parent']
+        if 'environment_variables' in data:
+            for var in data['environment_variables']:
+                value = data['environment_variables'][var]
+                deployment.env_vars.append(EnvironmentVariable(property_key=var, property_value=value))
+        if 'hosts' in data:
+            deployment.hosts = [] # Overwrite hosts with these new hosts
+            for name in data['hosts']:
+                host = Host.get_by_name(session, name)
+                if host:
+                    deployment.hosts.append(host)
+                    # FIXME: What should we do when the host specified isn't configured?            
+    
+    @staticmethod
+    def create(session, data):
+        if all(k in data for k in Deployment.required_keys):
+            d = Deployment(
+                image_tag=data['image_tag'],
+                app_name=data['app_name'],
+                environment=data['environment']
+            )
+            Deployment.update_with_data(session, d, data)
+            try:
+                session.add(d)
+                session.commit()
+                return d
+            except:
+                session.rollback()
+                traceback.print_exc()
+                
     @staticmethod
     def delete(session, app_name, image_tag, environment):
         deployment = Deployment.get_by_app(session, app_name, image_tag, environment)
@@ -347,58 +427,6 @@ class Deployment(Base):
         q = q.limit(1)
         if q.count() == 1:
             return q.one()
-
-    @staticmethod
-    def create(session, data):
-        if all(k in data for k in Deployment.required_keys):
-            d = Deployment(
-                image_tag=data['image_tag'],
-                app_name=data['app_name'],
-                environment=data['environment'],
-                status_endpoint=data['status_endpoint']
-            )
-            if 'status_port' in data:
-                d.status_port = data['status_port']
-                
-            if 'links' in data:
-                for link in data['links']:
-                    image = Image.find_by_name_and_tag(
-                        session, link['app_name'], link['image_tag'])
-                    if image:
-                        d.links.append(image)
-                        
-            if 'volumes' in data:
-                for vol in data['volumes']:
-                    image = Image.find_by_name_and_tag(
-                        session, link['app_name'], link['image_tag'])
-                    if image:
-                        d.volumes.append(image)
-                        
-            if 'mapped_ports' in data and len(data['mapped_ports']) > 0:
-                # FIXME: do some validation of structure here
-                d.mapped_ports = ','.join(data['mapped_ports'])
-            if 'mapped_volumes' in data and len(data['mapped_volumes']) > 0:
-                # FIXME: do some validation of structure here
-                d.mapped_volumes = ','.join(data['mapped_volumes'])
-            if 'parent' in data:
-                d.parent_id = data['parent']
-            if 'environment_variables' in data:
-                for var in data['environment_variables']:
-                    value = data['environment_variables'][var]
-                    d.env_vars.append(EnvironmentVariable(property_key=var, property_value=value))
-            if 'hosts' in data:
-                for name in data['hosts']:
-                    host = Host.get_by_name(session, name)
-                    if host:
-                        d.hosts.append(host)
-                    # FIXME: What should we do when the host specified isn't configured?
-            try:
-                session.add(d)
-                session.commit()
-                return d
-            except:
-                session.rollback()
-                traceback.print_exc()
 
     def encode_with_deps(self, session):
         result = {'deployment': self.encode(), 'dependencies':[]}

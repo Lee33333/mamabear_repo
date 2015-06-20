@@ -1,7 +1,6 @@
 import cherrypy
 from mamabear.model import *
 
-
 class HostController(object):
 
     #
@@ -57,8 +56,9 @@ class HostController(object):
             host = Host.create(cherrypy.request.db, data['host'])
             if host:
                 try:
-                    self.worker.update_host_containers(cherrypy.request.db, host)
+                    self.worker.update_host_containers(cherrypy.request.db, host, self.worker._config)
                 except Exception as e:
+                    cherrypy.log.error("Can't update host containers", traceback=True)
                     return {'warn': "Host unreachable"}
                     
                 cherrypy.response.status = 201
@@ -114,6 +114,7 @@ class AppController(object):
         try:
             self.worker.update_app_images(cherrypy.request.db, app)
         except Exception as e:
+            cherrypy.log.error("Can't refresh images", traceback=True)
             cherrypy.response.status = 500
             return {'error': e.message} 
         return app.encode()    
@@ -134,6 +135,7 @@ class AppController(object):
                 try:
                     self.worker.update_app_images(cherrypy.request.db, app)
                 except Exception as e:
+                    cherrypy.log.error("Can't update images", traceback=True)
                     return {'warn': "No images for app in registry"}
                     
                 cherrypy.response.status = 201
@@ -165,7 +167,7 @@ class AppController(object):
                     self.worker.update_app_images(cherrypy.request.db, App.get(cherrypy.request.db, app))
                     self.worker.update_deployment(cherrypy.request.db, deployment)
                 except Exception as e:
-                    print e
+                    cherrypy.log.error("Failed updating images and running containers", traceback=True)
                     return {'warn': "Failed updating images and running containers"}
                     
                 cherrypy.response.status = 201
@@ -176,36 +178,6 @@ class AppController(object):
                 
         cherrypy.response.status = 400
         return {'error': 'malformed request, request body must include deployment data with {}'.format(Deployment.required_keys)}
-
-    @cherrypy.tools.json_in()
-    @cherrypy.tools.json_out()
-    def add_deployment_hosts(self, name, image_tag, environment):
-        data = cherrypy.request.json
-        if 'hosts' in data:
-            deployment = Deployment.get_by_app(
-                cherrypy.request.db, name, image_tag=image_tag, environment=environment)
-            if deployment:
-                for name in data['hosts']:
-                    host = Host.get_by_name(cherrypy.request.db, name)
-                    if host:
-                        deployment.hosts.append(host)                        
-                    else:
-                        cherrypy.response.status = 404
-                        return {'error': "Host with name {} not found".format(name)}
-                try:
-                    cherrypy.request.db.add(deployment)
-                    cherrypy.request.db.commit()
-                    return {'added': data['hosts']}
-                except:
-                    cherrypy.request.db.rollback()
-                    traceback.print_exc()
-                    return {'error': 'internal server error'}
-            else:
-                cherrypy.response.status = 404
-                return {'error': 'Deployment with configuration ({}:{},{}) not found'.format(name, image_tag, environment)}
-                
-        cherrypy.response.status = 400        
-        return {'error': 'malformed request, body must include hosts'}
 
 class DeploymentController(object):
 
@@ -240,7 +212,18 @@ class DeploymentController(object):
             
         cherrypy.response.status = 404
         return {'error': 'deployment configuration ({}:{},{}) not found'.format(app_name, image_tag, environment)}
-    
+
+    @cherrypy.tools.json_in()
+    @cherrypy.tools.json_out()
+    def update_deployment(self, app_name, image_tag, environment):
+        data = cherrypy.request.json
+        if 'deployment' in data:
+            updated = Deployment.update_by_app(cherrypy.request.db, app_name, image_tag, environment, data['deployment'])
+            return {'updated':updated, 'deployment': '{}:{}/{}'.format(app_name, image_tag, environment)}
+                
+        cherrypy.response.status = 400        
+        return {'error': 'malformed request, body must include deployment data'}
+        
 class ImageController(object):
 
     @cherrypy.tools.json_out()
