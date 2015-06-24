@@ -213,20 +213,8 @@ define([
             data = {
                 'deployment': {"mapped_ports": self.mappedPorts()}
             };
-            console.log(data);
-            var targetUrl = '../mamabear/v1/deployment/'+self.appName()+'/'+self.imageTag()+'/'+self.environment();
-            $.ajax({
-                 type: 'PUT',
-                 data: ko.toJSON(data),
-                 url: targetUrl,
-                 contentType:'application/json'
-             }).done(function(json) {
-                console.log(json);
-                //pager.navigate('#deployments/all');
-             }).fail(function(json) {
-                console.log("Failed updating deployment");
-                //add alert message here
-             });
+
+            self.putToDeployment(data);
         };
 
         self.removeMappedPort = function(mappedPort) {
@@ -234,20 +222,7 @@ define([
             data = {
                 'deployment': {"mapped_ports": self.mappedPorts()}
             };
-            console.log(data);
-            var targetUrl = '../mamabear/v1/deployment/'+self.appName()+'/'+self.imageTag()+'/'+self.environment();
-            $.ajax({
-                 type: 'PUT',
-                 data: ko.toJSON(data),
-                 url: targetUrl,
-                 contentType:'application/json'
-             }).done(function(json) {
-                console.log(json);
-                //pager.navigate('#deployments/all');
-             }).fail(function(json) {
-                console.log("Failed updating deployment");
-                //add alert message here
-             });
+            self.putToDeployment(data);
 
         };
 
@@ -257,20 +232,17 @@ define([
             } else if (params.name === 'statusPort') {
                 var the_name = 'status_port';
             } 
-
-
-            //var the_name = params.name;
-            console.log(the_name);
             var dep_data = {
             };
             dep_data[the_name] = params.value;
             data = {
                 'deployment': dep_data
             };
-            //data = {
-                //'deployment': {'status_endpoint' : params.value}
-            //};
-            console.log(data);
+            self.putToDeployment(data);
+
+        };
+
+        self.putToDeployment = function(data) {
             var targetUrl = '../mamabear/v1/deployment/'+self.appName()+'/'+self.imageTag()+'/'+self.environment();
              $.ajax({
                  type: 'PUT',
@@ -279,12 +251,11 @@ define([
                  contentType:'application/json'
              }).done(function(json) {
                 console.log(json);
-                pager.navigate('#deployments/all');
+                //pager.navigate('#deployments/all');
              }).fail(function(json) {
                 console.log("Failed updating deployment");
                 //add alert message here
              });
-
         };
 
         // self.newFromExisting = function(appViewModel) {
