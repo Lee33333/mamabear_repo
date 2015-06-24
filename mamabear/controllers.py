@@ -165,7 +165,8 @@ class AppController(object):
             if deployment:
                 try:
                     self.worker.update_app_images(cherrypy.request.db, App.get(cherrypy.request.db, app))
-                    self.worker.update_deployment(cherrypy.request.db, deployment)
+                    self.worker.update_deployment
+                    (cherrypy.request.db, deployment)
                 except Exception as e:
                     cherrypy.log.error("Failed updating images and running containers", traceback=True)
                     return {'warn': "Failed updating images and running containers"}

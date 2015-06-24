@@ -3,8 +3,9 @@ define([
     'knockout',
     'pager',
     'container',
-    'image'
-], function ($, ko, pager, Container, Image) {
+    'image',
+    'ko_editable'
+], function ($, ko, pager, Container, Image, ko_editable) {
     function Deployment(page) {        
         var self = this;
         
@@ -21,12 +22,15 @@ define([
         self.volumes = ko.observableArray([]);
         self.containers = ko.observableArray([]);
         self.environmentVariables = ko.observable({});
-        self.parent = ko.observable();
+        self.parent = ko.observable('');
         self.imageList = ko.observableArray([]);        
 
         self.environmentVariablesString = ko.observable('');
         self.mappedPortsString = ko.observable('');
         self.mappedVolumesString = ko.observable('');
+
+        self.mappedPortToAdd = ko.observable("");
+        self.mappedVolmeToAdd = ko.observable("");
         
         self.launch = function() {
             $.ajax({
@@ -197,38 +201,124 @@ define([
             return container;
         };
 
-        self.newFromExisting = function(appViewModel) {
-            appViewModel.deployment().parent(self.id());
-            appViewModel.deployment().appName(self.appName());
-            appViewModel.deployment().imageTag(self.imageTag());
-            appViewModel.deployment().environment(self.environment());
-            appViewModel.deployment().statusEndpoint(self.statusEndpoint());
-            appViewModel.deployment().statusPort(self.statusPort());
-            appViewModel.deployment().links(self.links());
-            appViewModel.deployment().volumes(self.volumes());
-            
-            if (self.environmentVariables()) {
-                appViewModel.deployment().environmentVariablesString($.map(self.envVarList(), function(kv, i) {
-                    return kv.name+"="+kv.value 
-                }).join(","));
+ 
+
+        self.addMappedPort=function() {
+            console.log("hello")
+            if (self.mappedPortToAdd() != "") {
+            self.mappedPorts.push(this.mappedPortToAdd()); // Adds the item. Writing to the "items" observableArray causes any associated UI to update.
+            self.mappedPortToAdd("");
             }
 
-            if (self.mappedPorts()) {
-                appViewModel.deployment().mappedPortsString(self.mappedPorts().join(","));
-            }
-
-            if (self.mappedVolumes()) {
-                appViewModel.deployment().mappedVolumesString(self.mappedVolumes().join(","));
-            }
-            
-            pager.navigate('#new_deployment');
-            
-            // This is a dirty hack; trigger select2 changes isn't working
-            $('#select2-inputAppName-container').text(self.appName());
-            $('#inputAppName').append("<option value='"+self.appName()+"'>"+self.appName()+"</option>")
-            $('#inputAppName').val(self.appName()).trigger("change");
-            
+            data = {
+                'deployment': {"mapped_ports": self.mappedPorts()}
+            };
+            console.log(data);
+            var targetUrl = '../mamabear/v1/deployment/'+self.appName()+'/'+self.imageTag()+'/'+self.environment();
+            $.ajax({
+                 type: 'PUT',
+                 data: ko.toJSON(data),
+                 url: targetUrl,
+                 contentType:'application/json'
+             }).done(function(json) {
+                console.log(json);
+                //pager.navigate('#deployments/all');
+             }).fail(function(json) {
+                console.log("Failed updating deployment");
+                //add alert message here
+             });
         };
+
+        self.removeMappedPort = function(mappedPort) {
+            self.mappedPorts.remove(mappedPort);
+            data = {
+                'deployment': {"mapped_ports": self.mappedPorts()}
+            };
+            console.log(data);
+            var targetUrl = '../mamabear/v1/deployment/'+self.appName()+'/'+self.imageTag()+'/'+self.environment();
+            $.ajax({
+                 type: 'PUT',
+                 data: ko.toJSON(data),
+                 url: targetUrl,
+                 contentType:'application/json'
+             }).done(function(json) {
+                console.log(json);
+                //pager.navigate('#deployments/all');
+             }).fail(function(json) {
+                console.log("Failed updating deployment");
+                //add alert message here
+             });
+
+        };
+
+        self.updateDeployment = function(params) {
+            if (params.name === 'statusEndpoint' ) {
+                var the_name = 'status_endpoint';
+            } else if (params.name === 'statusPort') {
+                var the_name = 'status_port';
+            } 
+
+
+            //var the_name = params.name;
+            console.log(the_name);
+            var dep_data = {
+            };
+            dep_data[the_name] = params.value;
+            data = {
+                'deployment': dep_data
+            };
+            //data = {
+                //'deployment': {'status_endpoint' : params.value}
+            //};
+            console.log(data);
+            var targetUrl = '../mamabear/v1/deployment/'+self.appName()+'/'+self.imageTag()+'/'+self.environment();
+             $.ajax({
+                 type: 'PUT',
+                 data: ko.toJSON(data),
+                 url: targetUrl,
+                 contentType:'application/json'
+             }).done(function(json) {
+                console.log(json);
+                pager.navigate('#deployments/all');
+             }).fail(function(json) {
+                console.log("Failed updating deployment");
+                //add alert message here
+             });
+
+        };
+
+        // self.newFromExisting = function(appViewModel) {
+        //     appViewModel.deployment().parent(self.id());
+        //     appViewModel.deployment().appName(self.appName());
+        //     appViewModel.deployment().imageTag(self.imageTag());
+        //     appViewModel.deployment().environment(self.environment());
+        //     appViewModel.deployment().statusEndpoint(self.statusEndpoint());
+        //     appViewModel.deployment().statusPort(self.statusPort());
+        //     appViewModel.deployment().links(self.links());
+        //     appViewModel.deployment().volumes(self.volumes());
+            
+        //     if (self.environmentVariables()) {
+        //         appViewModel.deployment().environmentVariablesString($.map(self.envVarList(), function(kv, i) {
+        //             return kv.name+"="+kv.value 
+        //         }).join(","));
+        //     }
+
+        //     if (self.mappedPorts()) {
+        //         appViewModel.deployment().mappedPortsString(self.mappedPorts().join(","));
+        //     }
+
+        //     if (self.mappedVolumes()) {
+        //         appViewModel.deployment().mappedVolumesString(self.mappedVolumes().join(","));
+        //     }
+            
+        //     pager.navigate('#new_deployment');
+            
+        //     // This is a dirty hack; trigger select2 changes isn't working
+        //     $('#select2-inputAppName-container').text(self.appName());
+        //     $('#inputAppName').append("<option value='"+self.appName()+"'>"+self.appName()+"</option>")
+        //     $('#inputAppName').val(self.appName()).trigger("change");
+            
+        // };
         
         self.deleteDeployment = function() {
             $.ajax({

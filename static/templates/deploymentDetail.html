@@ -1,3 +1,5 @@
+
+
 <div class="row">
   <h2 class="sub-header col-md-4" data-bind="text: appName"></h2>
   <div class="col-md-offset-6 col-md-2">
@@ -15,24 +17,37 @@
 </div>
 <div class="row">
   <strong class="col-md-2">Status Endpoint: </strong>
-  <span class="col-md-2" data-bind="text: statusEndpoint"></span>
+  <span class="col-md-2" data-bind="editable: statusEndpoint, editableOptions: {url: updateDeployment}"></span>
 </div>
 <div class="row">
   <strong class="col-md-2">Status Port: </strong>
-  <span class="col-md-2" data-bind="text: statusPort"></span>
+  <span class="col-md-2" data-bind="editable: statusPort, editableOptions: {url: updateDeployment}"></span>
 </div>
 
+<strong>Mapped Ports: </strong>
+<form data-bind="submit: addMappedPort">
+    <input data-bind='value: mappedPortToAdd, valueUpdate: "afterkeydown"' />
+    <button type="submit" data-bind="enable: mappedPortToAdd().length > 0">Add</button>
+</form>
+
 <p>
-  <strong>Mapped Ports: </strong>
   <ul class="list-group" data-bind="foreach: mappedPorts">
     <li class="list-group-item" data-bind="text: $data"></li>
+    <a href="#" data-bind="click: $parent.removeMappedPort">Remove</a>
   </ul>
-</p>
+</p> 
 
 <p>
   <strong>Mapped Volumes: </strong>
+<form data-bind="submit: addMappedVolume">
+    <input data-bind='value: mappedVolumeToAdd, valueUpdate: "afterkeydown"' />
+    <button type="submit" data-bind="enable: mappedVolumeToAdd().length > 0">Add</button>
+</form>
+
+<p>
   <ul class="list-group" data-bind="foreach: mappedVolumes">
     <li class="list-group-item" data-bind="text: $data"></li>
+      <a href="#" data-bind="click: $parent.removeMappedVolume ">Remove</a>
   </ul>
 </p>
 
@@ -94,6 +109,6 @@
     <button data-bind="click: deleteDeployment" class="btn btn-danger">Delete Deployment</button>
   </div>
   <div class="col-md-2">
-    <button data-bind="click: function(data, event) {newFromExisting($root, data, event)}" class="btn btn-primary">New Deployment From This One</button>
+    <button data-bind="click: function(data, event) {updateDeployment($root, data, event)}" class="btn btn-primary">Update Deployment</button>
   </div>  
 </div>
