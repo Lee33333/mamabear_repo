@@ -37,12 +37,11 @@
   </ul>
 </p> 
 
-<p>
   <strong>Mapped Volumes: </strong>
-<form data-bind="submit: addMappedVolume">
-    <input data-bind='value: mappedVolumeToAdd, valueUpdate: "afterkeydown"' />
-    <button type="submit" data-bind="enable: mappedVolumeToAdd().length > 0">Add</button>
-</form>
+    <form data-bind="submit: addMappedVolume">
+        <input data-bind='value: mappedVolumeToAdd, valueUpdate: "afterkeydown"' />
+        <button type="submit" data-bind="enable: mappedVolumeToAdd().length > 0">Add</button>
+    </form>
 
 <p>
   <ul class="list-group" data-bind="foreach: mappedVolumes">
@@ -53,8 +52,15 @@
 
 <p>
   <strong>Environment Variables: </strong>
+    <form data-bind="submit: addEnvVar">
+        <input data-bind='value: envVarToAdd, valueUpdate: "afterkeydown"' />
+        <button type="submit" data-bind="enable: envVarToAdd().length > 0">Add</button>
+    </form>
+
+<p>
   <ul class="list-group" data-bind="foreach: envVarList">
     <li class="list-group-item" data-bind="text: name+'='+value"></li>
+      <a href="#" data-bind="click: $parent.removeEnvVar ">Remove</a>
   </ul>
 </p>
 

@@ -30,7 +30,8 @@ define([
         self.mappedVolumesString = ko.observable('');
 
         self.mappedPortToAdd = ko.observable("");
-        self.mappedVolmeToAdd = ko.observable("");
+        self.mappedVolumeToAdd = ko.observable("");
+        self.envVarToAdd = ko.observable("");
         
         self.launch = function() {
             $.ajax({
@@ -201,10 +202,7 @@ define([
             return container;
         };
 
- 
-
         self.addMappedPort=function() {
-            console.log("hello")
             if (self.mappedPortToAdd() != "") {
             self.mappedPorts.push(this.mappedPortToAdd()); // Adds the item. Writing to the "items" observableArray causes any associated UI to update.
             self.mappedPortToAdd("");
@@ -221,6 +219,51 @@ define([
             self.mappedPorts.remove(mappedPort);
             data = {
                 'deployment': {"mapped_ports": self.mappedPorts()}
+            };
+            self.putToDeployment(data);
+
+        };
+
+        self.addMappedVolume=function() {
+            if (self.mappedVolumeToAdd() != "") {
+            self.mappedVolumes.push(this.mappedVolumeToAdd()); // Adds the item. Writing to the "items" observableArray causes any associated UI to update.
+            self.mappedVolumeToAdd("");
+            }
+
+            data = {
+                'deployment': {"mapped_volumes": self.mappedVolumes()}
+            };
+
+            self.putToDeployment(data);
+        };
+
+        self.removeMappedVolume = function(mappedVolume) {
+            self.mappedVolumes.remove(mappedVolume);
+            data = {
+                'deployment': {"mapped_volumes": self.mappedVolumes()}
+            };
+            self.putToDeployment(data);
+
+        };
+
+        self.addEnvVar=function() {
+            if (self.envVarToAdd() != "") {
+            //how to add to a dictionary here?!
+            self.environmentVariables.push(this.envVarToAdd()); // Adds the item. Writing to the "items" observableArray causes any associated UI to update.
+            self.envVarToAdd("");
+            }
+
+            data = {
+                'deployment': {"environment_variables": self.environmentVariables()}
+            };
+
+            self.putToDeployment(data);
+        };
+
+        self.removeEnvVar = function(envVar) {
+            self.environmentVariables.remove(envVar);
+            data = {
+                'deployment': {"environment_variables": self.environmentVariables()}
             };
             self.putToDeployment(data);
 

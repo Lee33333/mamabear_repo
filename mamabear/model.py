@@ -342,13 +342,11 @@ class Deployment(Base):
         if 'mapped_ports' in data and len(data['mapped_ports']) > 0:
             # FIXME: do some validation of structure here
             deployment.mapped_ports = ','.join(data['mapped_ports'])
-
-        if 'mapped_ports' in data and len(data['mapped_ports']) == 0:
-            print "!"*15
             
         if 'mapped_volumes' in data and len(data['mapped_volumes']) > 0:
             # FIXME: do some validation of structure here
             deployment.mapped_volumes = ','.join(data['mapped_volumes'])
+            
         if 'parent' in data:
             deployment.parent_id = data['parent']
         if 'environment_variables' in data:
