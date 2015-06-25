@@ -323,8 +323,7 @@ class Deployment(Base):
         #
         if 'links' in data:
             #delete links
-            if data['links'] == []:
-                #delete all deployment links
+            deployment.links = []
             for link in data['links']:
                 image = Image.find_by_name_and_tag(
                     session, link['app_name'], link['image_tag'])
@@ -334,9 +333,10 @@ class Deployment(Base):
                         
         if 'volumes' in data:
             #delete volumes
+            deployment.volumes = []
             for vol in data['volumes']:
                 image = Image.find_by_name_and_tag(
-                    session, link['app_name'], link['image_tag'])
+                    session, vol['app_name'], vol['image_tag'])
                 if image:
                     deployment.volumes.append(image)
 
