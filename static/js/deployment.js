@@ -33,6 +33,7 @@ define([
         self.mappedVolumeToAdd = ko.observable("");
         self.envVarToAdd = ko.observable("");
         self.linkToAdd = ko.observable("");
+        self.volumeToAdd = ko.observable("");
         
         self.launch = function() {
             $.ajax({
@@ -202,27 +203,22 @@ define([
             }
             return container;
         };
-
         self.addMappedPort = function() {
             if (self.mappedPortToAdd() != "") {
                 self.mappedPorts.push(this.mappedPortToAdd()); // Adds the item. Writing to the "items" observableArray causes any associated UI to update.
                 self.mappedPortToAdd("");
             }
-
             data = {
                 'deployment': {"mapped_ports": self.mappedPorts()}
             };
-
             self.putToDeployment(data);
         };
-
         self.removeMappedPort = function(mappedPort) {
             self.mappedPorts.remove(mappedPort);
             data = {
                 'deployment': {"mapped_ports": self.mappedPorts()}
             };
             self.putToDeployment(data);
-
         };
 
         self.addMappedVolume = function() {
@@ -230,21 +226,17 @@ define([
                 self.mappedVolumes.push(this.mappedVolumeToAdd()); // Adds the item. Writing to the "items" observableArray causes any associated UI to update.
                 self.mappedVolumeToAdd("");
             }
-
             data = {
                 'deployment': {"mapped_volumes": self.mappedVolumes()}
             };
-
             self.putToDeployment(data);
         };
-
         self.removeMappedVolume = function(mappedVolume) {
             self.mappedVolumes.remove(mappedVolume);
             data = {
                 'deployment': {"mapped_volumes": self.mappedVolumes()}
             };
             self.putToDeployment(data);
-
         };
 
         self.addLinks = function() {
@@ -252,9 +244,7 @@ define([
                 self.links.push(this.linkToAdd());
                 self.linkToAdd("");
             }
-
-            var link_data = {};
-
+            var data = {};
             if (self.links() && self.links().length > 0) {
                 var links = [];
                 $.each(self.links(), function(i, link) {
@@ -266,40 +256,66 @@ define([
                         });
                     }
                 });
-                //what does this do?
-                //links = $.unique('links');
+                //what does this do? links = $.unique('links');
             }
-
             data = {
                 'deployment': {"links": links}
             };
-
             self.putToDeployment(data);
         };
 
+        //not deleting links
         self.removeLink = function(link) {
             self.links.remove(link);
+            console.log(self.links());
             if (self.links() && self.links().length > 0) {
-                var links = [];
+                var the_links = [];
                 $.each(self.links(), function(i, link) {
                     if (link.includes(':')) {
                         var pair = link.split(':');
-                        links.push({
+                        the_links.push({
                             'app_name': pair[0],
                             'image_tag': pair[1]
                         });
                     }
                 });
-                //what does this do?
-                //links = $.unique('links');
+                //what does this do? links = $.unique('links');
+            } else { 
+                var the_links = []
+            }
+            //Is there functionality on the backend to delete links?
+            data = {
+                'deployment': {"links": the_links}
+            };
+            console.log(data);
+            console.log(the_links);
+            self.putToDeployment(data);
+        };
+
+        //not adding, why?
+        self.addVolumes = function() {
+            if (self.volumeToAdd() != "") {
+                self.volumes.push(this.volumeToAdd());
+                self.volumeToAdd("");
+            }
+            var data = {};
+            if (self.volumes() && self.volumes().length > 0) {
+                var volumes = [];
+                $.each(self.volumes(), function(i, volume) {
+                    if (volume.includes(':')) {
+                        var pair = volume.split(':');
+                        volumes.push({
+                            'app_name': pair[0],
+                            'image_tag': pair[1]
+                        });
+                    }
+                });
             }
             data = {
-                'deployment': {"links": links}
+                'deployment': {"volumes": volumes}
             };
             self.putToDeployment(data);
-
         };
-        
 
         // self.addEnvVar = function() {
         //     if (self.envVarToAdd() != "") {

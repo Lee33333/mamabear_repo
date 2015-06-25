@@ -24,26 +24,27 @@
   <span class="col-md-2" data-bind="editable: statusPort, editableOptions: {url: updateDeployment}"></span>
 </div>
 
+<p>
 <strong>Mapped Ports: </strong>
 <form data-bind="submit: addMappedPort">
     <input data-bind='value: mappedPortToAdd, valueUpdate: "afterkeydown"' />
     <button type="submit" data-bind="enable: mappedPortToAdd().length > 0">Add</button>
 </form>
 
-<p>
+
   <ul class="list-group" data-bind="foreach: mappedPorts">
     <li class="list-group-item" data-bind="text: $data"></li>
     <a href="#" data-bind="click: $parent.removeMappedPort">Remove</a>
   </ul>
 </p> 
-
+<p>
   <strong>Mapped Volumes: </strong>
     <form data-bind="submit: addMappedVolume">
         <input data-bind='value: mappedVolumeToAdd, valueUpdate: "afterkeydown"' />
         <button type="submit" data-bind="enable: mappedVolumeToAdd().length > 0">Add</button>
     </form>
 
-<p>
+
   <ul class="list-group" data-bind="foreach: mappedVolumes">
     <li class="list-group-item" data-bind="text: $data"></li>
       <a href="#" data-bind="click: $parent.removeMappedVolume ">Remove</a>
@@ -72,6 +73,7 @@
 </p>
 
 <!--<p data-bind="visible: links().length"> -->
+<p>
   <strong>Linked Apps: </strong>
     <form data-bind="submit: addLinks">
         <input data-bind='value: linkToAdd, valueUpdate: "afterkeydown"' />
@@ -84,11 +86,17 @@
   </ul>
 </p>
 
-<p data-bind="visible: volumes().length">
+<!--<p data-bind="visible: volumes().length"> -->
+<p>
   <strong>Linked Volumes: </strong>
+    <form data-bind="submit: addVolumes">
+      <input data-bind='value: volumeToAdd, valueUpdate: "afterkeydown"' />
+      <button type="submit" data-bind="enable: volumeToAdd().length > 0">Add</button>
+    </form>
+
   <ul data-bind="foreach: volumes">
     <li data-bind="text: $data"></li>
-
+    <a href="#" data-bind="click: $parent.removeVolume">Remove</a>
   </ul>
 </p>
 

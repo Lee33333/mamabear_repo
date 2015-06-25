@@ -322,13 +322,18 @@ class Deployment(Base):
         # be deployments not images
         #
         if 'links' in data:
+            #delete links
+            if data['links'] == []:
+                #delete all deployment links
             for link in data['links']:
                 image = Image.find_by_name_and_tag(
                     session, link['app_name'], link['image_tag'])
                 if image:
                     deployment.links.append(image)
+
                         
         if 'volumes' in data:
+            #delete volumes
             for vol in data['volumes']:
                 image = Image.find_by_name_and_tag(
                     session, link['app_name'], link['image_tag'])
@@ -342,11 +347,15 @@ class Deployment(Base):
         if 'mapped_ports' in data and len(data['mapped_ports']) > 0:
             # FIXME: do some validation of structure here
             deployment.mapped_ports = ','.join(data['mapped_ports'])
-            
+        if 'mapped_ports' in data and data['mapped_ports'] == []:
+            deployment.mapped_ports = None
+
         if 'mapped_volumes' in data and len(data['mapped_volumes']) > 0:
             # FIXME: do some validation of structure here
             deployment.mapped_volumes = ','.join(data['mapped_volumes'])
-            
+        if 'mapped_volumes' in data and data['mapped_volumes'] == []:
+            deployment.mapped_volumes = None
+
         if 'parent' in data:
             deployment.parent_id = data['parent']
         if 'environment_variables' in data:
