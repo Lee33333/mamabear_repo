@@ -32,6 +32,7 @@ define([
         self.mappedPortToAdd = ko.observable("");
         self.mappedVolumeToAdd = ko.observable("");
         self.envVarToAdd = ko.observable("");
+        self.linkToAdd = ko.observable("");
         
         self.launch = function() {
             $.ajax({
@@ -202,10 +203,10 @@ define([
             return container;
         };
 
-        self.addMappedPort=function() {
+        self.addMappedPort = function() {
             if (self.mappedPortToAdd() != "") {
-            self.mappedPorts.push(this.mappedPortToAdd()); // Adds the item. Writing to the "items" observableArray causes any associated UI to update.
-            self.mappedPortToAdd("");
+                self.mappedPorts.push(this.mappedPortToAdd()); // Adds the item. Writing to the "items" observableArray causes any associated UI to update.
+                self.mappedPortToAdd("");
             }
 
             data = {
@@ -224,10 +225,10 @@ define([
 
         };
 
-        self.addMappedVolume=function() {
+        self.addMappedVolume = function() {
             if (self.mappedVolumeToAdd() != "") {
-            self.mappedVolumes.push(this.mappedVolumeToAdd()); // Adds the item. Writing to the "items" observableArray causes any associated UI to update.
-            self.mappedVolumeToAdd("");
+                self.mappedVolumes.push(this.mappedVolumeToAdd()); // Adds the item. Writing to the "items" observableArray causes any associated UI to update.
+                self.mappedVolumeToAdd("");
             }
 
             data = {
@@ -246,28 +247,82 @@ define([
 
         };
 
-        self.addEnvVar=function() {
-            if (self.envVarToAdd() != "") {
-            //how to add to a dictionary here?!
-            self.environmentVariables.push(this.envVarToAdd()); // Adds the item. Writing to the "items" observableArray causes any associated UI to update.
-            self.envVarToAdd("");
+        self.addLinks = function() {
+            if (self.linkToAdd() != "") {
+                self.links.push(this.linkToAdd());
+                self.linkToAdd("");
+            }
+
+            var link_data = {};
+
+            if (self.links() && self.links().length > 0) {
+                var links = [];
+                $.each(self.links(), function(i, link) {
+                    if (link.includes(':')) {
+                        var pair = link.split(':');
+                        links.push({
+                            'app_name': pair[0],
+                            'image_tag': pair[1]
+                        });
+                    }
+                });
+                //what does this do?
+                //links = $.unique('links');
             }
 
             data = {
-                'deployment': {"environment_variables": self.environmentVariables()}
+                'deployment': {"links": links}
             };
 
             self.putToDeployment(data);
         };
 
-        self.removeEnvVar = function(envVar) {
-            self.environmentVariables.remove(envVar);
+        self.removeLink = function(link) {
+            self.links.remove(link);
+            if (self.links() && self.links().length > 0) {
+                var links = [];
+                $.each(self.links(), function(i, link) {
+                    if (link.includes(':')) {
+                        var pair = link.split(':');
+                        links.push({
+                            'app_name': pair[0],
+                            'image_tag': pair[1]
+                        });
+                    }
+                });
+                //what does this do?
+                //links = $.unique('links');
+            }
             data = {
-                'deployment': {"environment_variables": self.environmentVariables()}
+                'deployment': {"links": links}
             };
             self.putToDeployment(data);
 
         };
+        
+
+        // self.addEnvVar = function() {
+        //     if (self.envVarToAdd() != "") {
+        //     //how to add to a dictionary here?!
+        //     self.environmentVariables.extend(this.envVarToAdd()); // Adds the item. Writing to the "items" observableArray causes any associated UI to update.
+        //     self.envVarToAdd("");
+        //     }
+
+        //     data = {
+        //         'deployment': {"environment_variables": self.environmentVariables()}
+        //     };
+
+        //     self.putToDeployment(data);
+        // };
+
+        // self.removeEnvVar = function(envVar) {
+        //     self.environmentVariables.remove(envVar);
+        //     data = {
+        //         'deployment': {"environment_variables": self.environmentVariables()}
+        //     };
+        //     self.putToDeployment(data);
+
+        // };
 
         self.updateDeployment = function(params) {
             if (params.name === 'statusEndpoint' ) {

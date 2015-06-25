@@ -52,15 +52,15 @@
 
 <p>
   <strong>Environment Variables: </strong>
-    <form data-bind="submit: addEnvVar">
+   <!-- <form data-bind="submit: addEnvVar">
         <input data-bind='value: envVarToAdd, valueUpdate: "afterkeydown"' />
         <button type="submit" data-bind="enable: envVarToAdd().length > 0">Add</button>
-    </form>
+    </form> -->
 
 <p>
   <ul class="list-group" data-bind="foreach: envVarList">
     <li class="list-group-item" data-bind="text: name+'='+value"></li>
-      <a href="#" data-bind="click: $parent.removeEnvVar ">Remove</a>
+    <!--  <a href="#" data-bind="click: $parent.removeEnvVar ">Remove</a>-->
   </ul>
 </p>
 
@@ -71,10 +71,16 @@
   </ul>
 </p>
 
-<p data-bind="visible: links().length">
+<!--<p data-bind="visible: links().length"> -->
   <strong>Linked Apps: </strong>
+    <form data-bind="submit: addLinks">
+        <input data-bind='value: linkToAdd, valueUpdate: "afterkeydown"' />
+        <button type="submit" data-bind="enable: linkToAdd().length > 0">Add</button>
+    </form>
+
   <ul data-bind="foreach: links">
     <li data-bind="text: $data"></li>
+    <a href="#" data-bind="click: $parent.removeLink">Remove</a>
   </ul>
 </p>
 
@@ -82,6 +88,7 @@
   <strong>Linked Volumes: </strong>
   <ul data-bind="foreach: volumes">
     <li data-bind="text: $data"></li>
+
   </ul>
 </p>
 
