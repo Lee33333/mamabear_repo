@@ -5,8 +5,9 @@ define([
     'container',
     'image',
     'ko_editable',
-    'select2'
-], function ($, ko, pager, Container, Image, ko_editable, select2) {
+    'select2',
+    'knockoutamdhelpers'
+], function ($, ko, pager, Container, Image, ko_editable, select2, knockoutamdhelpers) {
     function Deployment(page) {        
         var self = this;
         
@@ -36,12 +37,36 @@ define([
         self.linkToAdd = ko.observable("");
         self.volumeToAdd = ko.observable("");
 
-        var data1 = [{ id: 0, text: 'enhancement' }, { id: 1, text: 'bug' }, { id: 2, text: 'duplicate' }, { id: 3, text: 'invalid' }, { id: 4, text: 'wontfix' }];
+        self.hostsPath = '../mamabear/v1/host';
+
  
-        $(".js-example-data-array").select2({
-            data: data1
-        })
-        
+        self.defineArraySelect = function(page) {
+            var data1 = [{ id: 0, text: 'enhancement' }, { id: 1, text: 'bug' }, { id: 2, text: 'duplicate' }, { id: 3, text: 'invalid' }, { id: 4, text: 'wontfix' }];
+
+            $(".js-example-data-array").select2({
+                data: data1
+            });
+
+            var hostBindArgs = {
+                ajax: {
+                    url: self.hostsPath,
+                    dataType: 'json',
+                    delay: 250,
+                    processResults: function(data, pg) {
+                        return {
+                            results: $.map(data.hits, function(hit, i) {
+                                return {'text': hit.alias, 'id': hit.hostname};
+                            })
+                        }
+                    }
+                },
+                minimumInputLength: 0
+            };
+
+            $('#inputHosts2').select2(hostBindArgs);
+
+        };
+
         self.launch = function() {
             $.ajax({
                 url: self.runPath()

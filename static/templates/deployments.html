@@ -14,5 +14,5 @@
   </table>
 </div>
 <div data-bind="page: {id: '?', beforeShow: setPage}">  
-  <div data-bind="module: {name: 'deployment', template: 'deploymentDetail', data: page}"></div>
+  <div data-bind="module: {name: 'deployment', template: 'deploymentDetail', afterRender: 'defineArraySelect', data: page}"></div>
 </div>
