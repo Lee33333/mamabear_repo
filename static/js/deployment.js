@@ -36,11 +36,9 @@ define([
         self.linkToAdd = ko.observable("");
         self.volumeToAdd = ko.observable("");
 
-        var data1 = [{ id: 0, text: 'enhancement' }, { id: 1, text: 'bug' }, { id: 2, text: 'duplicate' }, { id: 3, text: 'invalid' }, { id: 4, text: 'wontfix' }];
- 
-        $(".js-example-data-array").select2({
-            data: data1
-        })
+        $("#e10").select2({
+            data:[{id:0,text:'enhancement'},{id:1,text:'bug'},{id:2,text:'duplicate'},{id:3,text:'invalid'},{id:4,text:'wontfix'}]
+        });
         
         self.launch = function() {
             $.ajax({
