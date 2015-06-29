@@ -5,7 +5,8 @@ define([
     'container',
     'image',
     'ko_editable',
-], function ($, ko, pager, Container, Image, ko_editable) {
+    'select2'
+], function ($, ko, pager, Container, Image, ko_editable, select2) {
     function Deployment(page) {        
         var self = this;
         
@@ -35,11 +36,11 @@ define([
         self.linkToAdd = ko.observable("");
         self.volumeToAdd = ko.observable("");
 
-        var sampleArray = [{id:0,text:'enhancement'}, {id:1,text:'bug'}
-                       ,{id:2,text:'duplicate'},{id:3,text:'invalid'}
-                       ,{id:4,text:'wontfix'}];
-
-        $("#select2test").select2({ data: sampleArray });
+        var data1 = [{ id: 0, text: 'enhancement' }, { id: 1, text: 'bug' }, { id: 2, text: 'duplicate' }, { id: 3, text: 'invalid' }, { id: 4, text: 'wontfix' }];
+ 
+        $(".js-example-data-array").select2({
+            data: data1
+        })
         
         self.launch = function() {
             $.ajax({
