@@ -340,10 +340,12 @@ class Deployment(Base):
                 if image:
                     deployment.volumes.append(image)
 
-        #
-        #
-        #
-        
+        if 'environment_variables' in data:
+            deployment.env_vars = []
+            for var in data['environment_variables']:
+                value = data['environment_variables'][var]
+                deployment.env_vars.append(EnvironmentVariable(property_key=var, property_value=value))
+
         if 'mapped_ports' in data and len(data['mapped_ports']) > 0:
             # FIXME: do some validation of structure here
             deployment.mapped_ports = ','.join(data['mapped_ports'])
@@ -358,10 +360,7 @@ class Deployment(Base):
 
         if 'parent' in data:
             deployment.parent_id = data['parent']
-        if 'environment_variables' in data:
-            for var in data['environment_variables']:
-                value = data['environment_variables'][var]
-                deployment.env_vars.append(EnvironmentVariable(property_key=var, property_value=value))
+
         if 'hosts' in data:
             deployment.hosts = [] # Overwrite hosts with these new hosts
             for name in data['hosts']:

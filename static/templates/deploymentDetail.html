@@ -53,15 +53,15 @@
 
 <p>
   <strong>Environment Variables: </strong>
-   <!-- <form data-bind="submit: addEnvVar">
+   <form data-bind="submit: addEnvVar">
         <input data-bind='value: envVarToAdd, valueUpdate: "afterkeydown"' />
         <button type="submit" data-bind="enable: envVarToAdd().length > 0">Add</button>
-    </form> -->
+    </form> 
 
 <p>
   <ul class="list-group" data-bind="foreach: envVarList">
     <li class="list-group-item" data-bind="text: name+'='+value"></li>
-    <!--  <a href="#" data-bind="click: $parent.removeEnvVar ">Remove</a>-->
+    <a href="#" data-bind="click: $parent.removeEnvVar ">Remove</a>
   </ul>
 </p>
 
@@ -71,6 +71,8 @@
     <li class="list-group-item"><a data-bind="attr: {href: '#hosts/'+hostname}, text: alias"></a></li>
   </ul>
 </p>
+
+<select type="hidden" class="form-control" id="select2test"></select>
 
 <!--<p data-bind="visible: links().length"> -->
 <p>

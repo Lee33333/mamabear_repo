@@ -4,7 +4,7 @@ define([
     'pager',
     'container',
     'image',
-    'ko_editable'
+    'ko_editable',
 ], function ($, ko, pager, Container, Image, ko_editable) {
     function Deployment(page) {        
         var self = this;
@@ -34,6 +34,12 @@ define([
         self.envVarToAdd = ko.observable("");
         self.linkToAdd = ko.observable("");
         self.volumeToAdd = ko.observable("");
+
+        var sampleArray = [{id:0,text:'enhancement'}, {id:1,text:'bug'}
+                       ,{id:2,text:'duplicate'},{id:3,text:'invalid'}
+                       ,{id:4,text:'wontfix'}];
+
+        $("#select2test").select2({ data: sampleArray });
         
         self.launch = function() {
             $.ajax({
@@ -263,8 +269,6 @@ define([
             };
             self.putToDeployment(data);
         };
-
-        //not deleting links
         self.removeLink = function(link) {
             self.links.remove(link);
             console.log(self.links());
@@ -283,7 +287,6 @@ define([
             } else { 
                 var the_links = []
             }
-            //Is there functionality on the backend to delete links?
             data = {
                 'deployment': {"links": the_links}
             };
@@ -315,7 +318,7 @@ define([
             };
             self.putToDeployment(data);
         };
-        //not removing volumes, why?
+        
         self.removeVolume = function(volume) {
             self.volumes.remove(volume);
             if (self.links() && self.links().length > 0) {
@@ -333,7 +336,7 @@ define([
             } else { 
                 var the_volumes = []
             }
-            //Is there functionality on the backend to delete links?
+            
             data = {
                 'deployment': {"volumes": the_volumes}
             };
@@ -341,44 +344,34 @@ define([
             self.putToDeployment(data);
         };
 
-        // self.addEnvVar = function() {
-        //     if (self.envVarToAdd() != "") {
-        //     //how to add to a dictionary here?!
-        //     self.environmentVariables.push(this.envVarToAdd()); // Adds the item. Writing to the "items" observableArray causes any associated UI to update.
-        //     self.envVarToAdd("");
-        //     }
+         self.addEnvVar = function() {
+            if (self.envVarToAdd() != "") {
+            var newEnvVar = this.envVarToAdd(); // foo=bar            
+            var pair = newEnvVar.split('=');
+            newEnvVar = {"key": pair[0], "value": pair[1] }
+            self.environmentVariables()[newEnvVar.key] = newEnvVar.value; // Adds the item. Writing to the "items" observableArray causes any associated UI to update.
+            self.envVarToAdd("");
+            console.log(this.environmentVariables());
+            data = {'deployment': {"environment_variables": self.environmentVariables()}};
+            console.log(data);
 
-        //     data = {
-        //         'deployment': {"environment_variables": self.environmentVariables()}
-        //     };
+            self.putToDeployment(data);
+            self.environmentVariables.valueHasMutated();
+        }
+        };
 
-        //     self.putToDeployment(data);
-        // };
-
-        // self.removeEnvVar = function(envVar) {
-        //     self.environmentVariables.remove(envVar);
-        //     data = {
-        //         'deployment': {"environment_variables": self.environmentVariables()}
-        //     };
-        //     self.putToDeployment(data);
-
-        // };
-
-        //  self.addEnvVar = function() {
-        //     if (self.envVarToAdd() != "") {
-        //     //how to add to a dictionary here?!
-        //     var newEnvVar = this.envVarToAdd(); // foo=bar
+        self.removeEnvVar = function(envVar) {
+            name = envVar.name;
+            delete self.environmentVariables()[name];
             
-        //     self.environmentVariables().[newEnvVar.key] = newEnvVar.value; // Adds the item. Writing to the "items" observableArray causes any associated UI to update.
-        //     self.envVarToAdd("");
-            
+            console.log("deleting");
+            console.log(self.environmentVariables());
 
-        //     data = {
-        //         'deployment': {"environment_variables": self.environmentVariables()}
-        //     };
+            data = {'deployment': {"environment_variables": self.environmentVariables()}};
 
-        //     self.putToDeployment(data);
-        // };
+            self.putToDeployment(data);
+            self.environmentVariables.valueHasMutated();
+        };
 
 
         self.updateDeployment = function(params) {
