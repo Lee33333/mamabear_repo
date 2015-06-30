@@ -248,7 +248,6 @@ define([
             //     console.log(self.hosts());
             // });
 
-
             $('#inputLinkedApp').select2(imageBindArgs);
             $('#inputLinkedApp').on('select2:select', function(e) {
                 var name = e.params.data.text;
@@ -261,9 +260,20 @@ define([
                 }
                 self.linkToAdd(e.params.data.text);
             });
+
+            $('#inputLinkedVolume').select2(imageBindArgs);
+            $('#inputLinkedVolume').on('select2:select', function(e) {
+                var name = e.params.data.text;
+                if (name.includes(":")) {
+                    var pair = name.split(":");
+                    self.linkToAdd({
+                        'app_name': pair[0],
+                        'image_tag': pair[1]
+                    })
+                }
+                self.volumeToAdd(e.params.data.text);
+            });
         };
-
-
 
         self.addHost = function() {
             console.log("Add host");
@@ -310,14 +320,11 @@ define([
                 self.links.push(self.linkToAdd());
                 self.linkToAdd("");
             }
-            console.log(self.links());
             if (self.links() && self.links().length > 0) {
                 var links = [];
                 $.each(self.links(), function(i, link) {
-                    console.log(link);
                     if (link.includes(':')) {
                         var pair = link.split(':');
-                        console.log(pair);
                         links.push({
                             'app_name': pair[0],
                             'image_tag': pair[1]
@@ -326,7 +333,6 @@ define([
                 });
             }
             var data = {};
-            console.log(data);
             data = {
                 'deployment': {"links": links}
             };
@@ -458,45 +464,11 @@ define([
                  contentType:'application/json'
              }).done(function(json) {
                 console.log(json);
-                //pager.navigate('#deployments/all');
              }).fail(function(json) {
                 console.log("Failed updating deployment");
                 //add alert message here
              });
         };
-
-        // self.newFromExisting = function(appViewModel) {
-        //     appViewModel.deployment().parent(self.id());
-        //     appViewModel.deployment().appName(self.appName());
-        //     appViewModel.deployment().imageTag(self.imageTag());
-        //     appViewModel.deployment().environment(self.environment());
-        //     appViewModel.deployment().statusEndpoint(self.statusEndpoint());
-        //     appViewModel.deployment().statusPort(self.statusPort());
-        //     appViewModel.deployment().links(self.links());
-        //     appViewModel.deployment().volumes(self.volumes());
-            
-        //     if (self.environmentVariables()) {
-        //         appViewModel.deployment().environmentVariablesString($.map(self.envVarList(), function(kv, i) {
-        //             return kv.name+"="+kv.value 
-        //         }).join(","));
-        //     }
-
-        //     if (self.mappedPorts()) {
-        //         appViewModel.deployment().mappedPortsString(self.mappedPorts().join(","));
-        //     }
-
-        //     if (self.mappedVolumes()) {
-        //         appViewModel.deployment().mappedVolumesString(self.mappedVolumes().join(","));
-        //     }
-            
-        //     pager.navigate('#new_deployment');
-            
-        //     // This is a dirty hack; trigger select2 changes isn't working
-        //     $('#select2-inputAppName-container').text(self.appName());
-        //     $('#inputAppName').append("<option value='"+self.appName()+"'>"+self.appName()+"</option>")
-        //     $('#inputAppName').val(self.appName()).trigger("change");
-            
-        // };
         
         self.deleteDeployment = function() {
             $.ajax({
