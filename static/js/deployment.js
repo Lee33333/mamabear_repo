@@ -88,33 +88,33 @@ define([
                 }));
             }
             
-            // if (self.links() && self.links().length > 0) {
-            //     s['links'] = [];
-            //     $.each(self.links(), function(i, link) {
-            //         if (link.includes(':')) {
-            //             var pair = link.split(':');
-            //             s['links'].push({
-            //                 'app_name': pair[0],
-            //                 'image_tag': pair[1]
-            //             });
-            //         }
-            //     });
-            //     s['links'] = $.unique(s['links']);
-            // }
+            if (self.links() && self.links().length > 0) {
+                s['links'] = [];
+                $.each(self.links(), function(i, link) {
+                    if (link.includes(':')) {
+                        var pair = link.split(':');
+                        s['links'].push({
+                            'app_name': pair[0],
+                            'image_tag': pair[1]
+                        });
+                    }
+                });
+                s['links'] = $.unique(s['links']);
+            }
             
-            // if (self.volumes() && self.volumes().length > 0) {
-            //     s['volumes'] = [];
-            //     $.each(self.volumes(), function(i, volume) {
-            //         if (volume.includes(':')) {
-            //             var pair = volume.split(':');
-            //             s['volumes'].push({
-            //                 'app_name': pair[0],
-            //                 'image_tag': pair[1]
-            //             });
-            //         }
-            //     });
-            //     s['volumes'] = $.unique(s['volumes']);
-            //}
+            if (self.volumes() && self.volumes().length > 0) {
+                s['volumes'] = [];
+                $.each(self.volumes(), function(i, volume) {
+                    if (volume.includes(':')) {
+                        var pair = volume.split(':');
+                        s['volumes'].push({
+                            'app_name': pair[0],
+                            'image_tag': pair[1]
+                        });
+                    }
+                });
+                s['volumes'] = $.unique(s['volumes']);
+            }
             
             if (self.environmentVariablesString() && self.environmentVariablesString() !== '') {                
                 $.each(self.environmentVariablesString().split(','), function(i, kv) {
@@ -229,7 +229,6 @@ define([
                     dataType: 'json',
                     delay: 250,
                     processResults: function(data, pg) {
-                        console.log(data);
                         return {
                             results: $.map(data.hits, function(hit, i) {
                                 return {'text': hit.app_name + ':' + hit.tag, 'id': hit.id};
@@ -252,16 +251,19 @@ define([
 
             $('#inputLinkedApp').select2(imageBindArgs);
             $('#inputLinkedApp').on('select2:select', function(e) {
-                var name = e.params.data.text
-                if (name.includes(':')) {
-                    var pair = name.split(':');
-                    self.links.push({
+                var name = e.params.data.text;
+                if (name.includes(":")) {
+                    var pair = name.split(":");
+                    self.linkToAdd({
                         'app_name': pair[0],
                         'image_tag': pair[1]
-                    });
-                };
+                    })
+                }
+                self.linkToAdd(e.params.data.text);
             });
         };
+
+
 
         self.addHost = function() {
             console.log("Add host");
@@ -304,15 +306,35 @@ define([
         };
 
         self.addLinks = function() {
+            if (self.linkToAdd() !== "") {
+                self.links.push(self.linkToAdd());
+                self.linkToAdd("");
+            }
+            console.log(self.links());
+            if (self.links() && self.links().length > 0) {
+                var links = [];
+                $.each(self.links(), function(i, link) {
+                    console.log(link);
+                    if (link.includes(':')) {
+                        var pair = link.split(':');
+                        console.log(pair);
+                        links.push({
+                            'app_name': pair[0],
+                            'image_tag': pair[1]
+                        });
+                    }
+                });
+            }
             var data = {};
+            console.log(data);
             data = {
-                'deployment': {"links": self.links()}
+                'deployment': {"links": links}
             };
             self.putToDeployment(data);
+            $('#inputLinkedApp').val(null).trigger('change');
         };
         self.removeLink = function(link) {
             self.links.remove(link);
-            console.log(self.links());
             if (self.links() && self.links().length > 0) {
                 var the_links = [];
                 $.each(self.links(), function(i, link) {
@@ -330,8 +352,6 @@ define([
             data = {
                 'deployment': {"links": the_links}
             };
-            console.log(data);
-            console.log(the_links);
             self.putToDeployment(data);
         };
 

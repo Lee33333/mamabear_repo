@@ -80,10 +80,6 @@
 <p>
 <br>
   <strong>Linked Apps: </strong>
-   <!-- <form data-bind="submit: addLinks">
-        <input data-bind='value: linkToAdd, valueUpdate: "afterkeydown"' />
-        <button type="submit" data-bind="enable: linkToAdd().length > 0">Add</button>
-    </form> -->
 
   <ul data-bind="foreach: links">
     <li data-bind="text: $data"></li>
@@ -92,8 +88,8 @@
 </p>
 
 <form data-bind="submit: addLinks">
-    <select style="width: 100%" multiple="true" require="true" class="form-control" id="inputLinkedApp"></select> 
-  <button type="submit" class="btn btn-primary">Select</button>
+    <select style="width: 100%" require="true" class="form-control" id="inputLinkedApp"></select> 
+  <button type="submit" class="btn btn-primary" id="linkedAppButton">Add</button>
 </form>
 
 <!--<p data-bind="visible: volumes().length"> -->
