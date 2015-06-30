@@ -71,9 +71,10 @@
     <li class="list-group-item"><a data-bind="attr: {href: '#hosts/'+hostname}, text: alias"></a></li>
   </ul>
 </p>
-
-<select class="js-example-data-array"></select>
-<select style="width: 100%" multiple="true" required="true" class="form-control" id="inputHosts2"></select> 
+  <form data-bind="submit: addHost">
+    <select style="width: 100%" multiple="true" required="true" class="form-control" id="inputHosts2"></select> 
+  <button type="submit" class="btn btn-primary">Select</button>
+  </form>
 
 <!--<p data-bind="visible: links().length"> -->
 <p>
@@ -88,6 +89,11 @@
     <a href="#" data-bind="click: $parent.removeLink">Remove</a>
   </ul>
 </p>
+
+<form data-bind="submit: addLinks">
+    <select style="width: 100%" multiple="true" required="true" class="form-control" id="inputLinkedApp"></select> 
+  <button type="submit" data-bind="enable: linkToAdd().length" class="btn btn-primary">Select</button>
+</form>
 
 <!--<p data-bind="visible: volumes().length"> -->
 <p>

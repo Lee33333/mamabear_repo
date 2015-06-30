@@ -37,35 +37,6 @@ define([
         self.linkToAdd = ko.observable("");
         self.volumeToAdd = ko.observable("");
 
-        self.hostsPath = '../mamabear/v1/host';
-
- 
-        self.defineArraySelect = function(page) {
-            var data1 = [{ id: 0, text: 'enhancement' }, { id: 1, text: 'bug' }, { id: 2, text: 'duplicate' }, { id: 3, text: 'invalid' }, { id: 4, text: 'wontfix' }];
-
-            $(".js-example-data-array").select2({
-                data: data1
-            });
-
-            var hostBindArgs = {
-                ajax: {
-                    url: self.hostsPath,
-                    dataType: 'json',
-                    delay: 250,
-                    processResults: function(data, pg) {
-                        return {
-                            results: $.map(data.hits, function(hit, i) {
-                                return {'text': hit.alias, 'id': hit.hostname};
-                            })
-                        }
-                    }
-                },
-                minimumInputLength: 0
-            };
-
-            $('#inputHosts2').select2(hostBindArgs);
-
-        };
 
         self.launch = function() {
             $.ajax({
@@ -235,6 +206,63 @@ define([
             }
             return container;
         };
+
+        self.bindUpdateSelects = function(page) {
+            var hostBindArgs = {
+                ajax: {
+                    url: '../mamabear/v1/host',
+                    dataType: 'json',
+                    delay: 250,
+                    processResults: function(data, pg) {
+                        return {
+                            results: $.map(data.hits, function(hit, i) {
+                                return {'text': hit.alias, 'id': hit.hostname};
+                            })
+                        }
+                    }
+                },
+                minimumInputLength: 0
+            };
+            var imageBindArgs = {
+                ajax: {
+                    url: '../mamabear/v1/image',
+                    dataType: 'json',
+                    delay: 250,
+                    processResults: function(data, pg) {
+                        return {
+                            results: $.map(data.hits, function(hit, i) {
+                                return {'text': hit.app_name + ':' + hit.tag, 'id': hit.id};
+                            })
+                        }
+                    }
+                },
+                minimumInputLength: 0
+            };
+
+            $('#inputHosts2').select2(hostBindArgs);
+            $('#inputHosts2').on('select2:select', function(e) {
+                self.hosts.push({
+                    'hostname': e.params.data.id,
+                    'alias': e.params.data.text
+                });
+                console.log(self.hosts());
+            });
+
+
+            $('#inputLinkedApp').select2(imageBindArgs);
+            // $('#inputLinkedApp').on('select2:select', function(e) {
+            //     self.links.push({
+            //         '': e.params.data.id,
+            //         'alias': e.params.data.text
+            //     });
+            //     console.log(self.links());
+            // });
+        };
+
+        self.addHost = function() {
+            console.log("Add host");
+        };
+
         self.addMappedPort = function() {
             if (self.mappedPortToAdd() != "") {
                 self.mappedPorts.push(this.mappedPortToAdd()); // Adds the item. Writing to the "items" observableArray causes any associated UI to update.
