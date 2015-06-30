@@ -64,7 +64,7 @@
     <a href="#" data-bind="click: $parent.removeEnvVar ">Remove</a>
   </ul>
 </p>
-
+<br>
 <p>
   <strong>Configured Hosts: </strong>
   <ul class="list-group" data-bind="foreach: hosts">
@@ -78,11 +78,12 @@
 
 <!--<p data-bind="visible: links().length"> -->
 <p>
+<br>
   <strong>Linked Apps: </strong>
-    <form data-bind="submit: addLinks">
+   <!-- <form data-bind="submit: addLinks">
         <input data-bind='value: linkToAdd, valueUpdate: "afterkeydown"' />
         <button type="submit" data-bind="enable: linkToAdd().length > 0">Add</button>
-    </form>
+    </form> -->
 
   <ul data-bind="foreach: links">
     <li data-bind="text: $data"></li>
@@ -91,12 +92,13 @@
 </p>
 
 <form data-bind="submit: addLinks">
-    <select style="width: 100%" multiple="true" required="true" class="form-control" id="inputLinkedApp"></select> 
-  <button type="submit" data-bind="enable: linkToAdd().length" class="btn btn-primary">Select</button>
+    <select style="width: 100%" multiple="true" require="true" class="form-control" id="inputLinkedApp"></select> 
+  <button type="submit" class="btn btn-primary">Select</button>
 </form>
 
 <!--<p data-bind="visible: volumes().length"> -->
 <p>
+<br>
   <strong>Linked Volumes: </strong>
     <form data-bind="submit: addVolumes">
       <input data-bind='value: volumeToAdd, valueUpdate: "afterkeydown"' />

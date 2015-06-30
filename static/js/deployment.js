@@ -88,33 +88,33 @@ define([
                 }));
             }
             
-            if (self.links() && self.links().length > 0) {
-                s['links'] = [];
-                $.each(self.links(), function(i, link) {
-                    if (link.includes(':')) {
-                        var pair = link.split(':');
-                        s['links'].push({
-                            'app_name': pair[0],
-                            'image_tag': pair[1]
-                        });
-                    }
-                });
-                s['links'] = $.unique(s['links']);
-            }
+            // if (self.links() && self.links().length > 0) {
+            //     s['links'] = [];
+            //     $.each(self.links(), function(i, link) {
+            //         if (link.includes(':')) {
+            //             var pair = link.split(':');
+            //             s['links'].push({
+            //                 'app_name': pair[0],
+            //                 'image_tag': pair[1]
+            //             });
+            //         }
+            //     });
+            //     s['links'] = $.unique(s['links']);
+            // }
             
-            if (self.volumes() && self.volumes().length > 0) {
-                s['volumes'] = [];
-                $.each(self.volumes(), function(i, volume) {
-                    if (volume.includes(':')) {
-                        var pair = volume.split(':');
-                        s['volumes'].push({
-                            'app_name': pair[0],
-                            'image_tag': pair[1]
-                        });
-                    }
-                });
-                s['volumes'] = $.unique(s['volumes']);
-            }
+            // if (self.volumes() && self.volumes().length > 0) {
+            //     s['volumes'] = [];
+            //     $.each(self.volumes(), function(i, volume) {
+            //         if (volume.includes(':')) {
+            //             var pair = volume.split(':');
+            //             s['volumes'].push({
+            //                 'app_name': pair[0],
+            //                 'image_tag': pair[1]
+            //             });
+            //         }
+            //     });
+            //     s['volumes'] = $.unique(s['volumes']);
+            //}
             
             if (self.environmentVariablesString() && self.environmentVariablesString() !== '') {                
                 $.each(self.environmentVariablesString().split(','), function(i, kv) {
@@ -229,6 +229,7 @@ define([
                     dataType: 'json',
                     delay: 250,
                     processResults: function(data, pg) {
+                        console.log(data);
                         return {
                             results: $.map(data.hits, function(hit, i) {
                                 return {'text': hit.app_name + ':' + hit.tag, 'id': hit.id};
@@ -240,23 +241,26 @@ define([
             };
 
             $('#inputHosts2').select2(hostBindArgs);
-            $('#inputHosts2').on('select2:select', function(e) {
-                self.hosts.push({
-                    'hostname': e.params.data.id,
-                    'alias': e.params.data.text
-                });
-                console.log(self.hosts());
-            });
+            // $('#inputHosts2').on('select2:select', function(e) {
+            //     self.hosts.push({
+            //         'hostname': e.params.data.id,
+            //         'alias': e.params.data.text
+            //     });
+            //     console.log(self.hosts());
+            // });
 
 
             $('#inputLinkedApp').select2(imageBindArgs);
-            // $('#inputLinkedApp').on('select2:select', function(e) {
-            //     self.links.push({
-            //         '': e.params.data.id,
-            //         'alias': e.params.data.text
-            //     });
-            //     console.log(self.links());
-            // });
+            $('#inputLinkedApp').on('select2:select', function(e) {
+                var name = e.params.data.text
+                if (name.includes(':')) {
+                    var pair = name.split(':');
+                    self.links.push({
+                        'app_name': pair[0],
+                        'image_tag': pair[1]
+                    });
+                };
+            });
         };
 
         self.addHost = function() {
@@ -300,26 +304,9 @@ define([
         };
 
         self.addLinks = function() {
-            if (self.linkToAdd() != "") {
-                self.links.push(this.linkToAdd());
-                self.linkToAdd("");
-            }
             var data = {};
-            if (self.links() && self.links().length > 0) {
-                var links = [];
-                $.each(self.links(), function(i, link) {
-                    if (link.includes(':')) {
-                        var pair = link.split(':');
-                        links.push({
-                            'app_name': pair[0],
-                            'image_tag': pair[1]
-                        });
-                    }
-                });
-                //what does this do? links = $.unique('links');
-            }
             data = {
-                'deployment': {"links": links}
+                'deployment': {"links": self.links()}
             };
             self.putToDeployment(data);
         };
@@ -337,7 +324,6 @@ define([
                         });
                     }
                 });
-                //what does this do? links = $.unique('links');
             } else { 
                 var the_links = []
             }
@@ -386,7 +372,6 @@ define([
                         });
                     }
                 });
-                //what does this do? links = $.unique('links');
             } else { 
                 var the_volumes = []
             }
