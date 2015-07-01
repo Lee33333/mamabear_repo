@@ -36,6 +36,7 @@ define([
         self.envVarToAdd = ko.observable("");
         self.linkToAdd = ko.observable("");
         self.volumeToAdd = ko.observable("");
+        self.hostToAdd = ko.observable("");
 
 
         self.launch = function() {
@@ -240,13 +241,12 @@ define([
             };
 
             $('#inputHosts2').select2(hostBindArgs);
-            // $('#inputHosts2').on('select2:select', function(e) {
-            //     self.hosts.push({
-            //         'hostname': e.params.data.id,
-            //         'alias': e.params.data.text
-            //     });
-            //     console.log(self.hosts());
-            // });
+            $('#inputHosts2').on('select2:select', function(e) {
+                self.hostToAdd({
+                    'hostname': e.params.data.id,
+                    'alias': e.params.data.text 
+                })
+            });
 
             $('#inputLinkedApp').select2(imageBindArgs);
             $('#inputLinkedApp').on('select2:select', function(e) {
@@ -276,7 +276,33 @@ define([
         };
 
         self.addHost = function() {
-            console.log("Add host");
+            if (self.hostToAdd() != "") {
+                self.hosts.push(self.hostToAdd());
+                self.hostToAdd("");
+            }
+            console.log(self.hosts());
+            self.updateHost();
+            $('#inputHosts2').val(null).trigger('change'); 
+        };
+
+        self.removeHost = function(host) {
+            self.hosts.remove(host);
+            self.updateHost();
+        };
+
+        self.updateHost = function() {
+            if (self.hosts() && self.hosts().length > 0) {
+                var hosts = [];
+                $.each(self.hosts(), function(i, host) {
+                    hosts.push(host.hostname);
+                });
+            }  else {
+                var hosts = []
+            }
+            data = {
+                'deployment': {'hosts': hosts}
+            };
+            self.putToDeployment(data);
         };
 
         self.addMappedPort = function() {
@@ -320,27 +346,11 @@ define([
                 self.links.push(self.linkToAdd());
                 self.linkToAdd("");
             }
-            if (self.links() && self.links().length > 0) {
-                var links = [];
-                $.each(self.links(), function(i, link) {
-                    if (link.includes(':')) {
-                        var pair = link.split(':');
-                        links.push({
-                            'app_name': pair[0],
-                            'image_tag': pair[1]
-                        });
-                    }
-                });
-            }
-            var data = {};
-            data = {
-                'deployment': {"links": links}
-            };
-            self.putToDeployment(data);
+            self.updateLinks();
             $('#inputLinkedApp').val(null).trigger('change');
         };
-        self.removeLink = function(link) {
-            self.links.remove(link);
+
+        self.updateLinks = function() {
             if (self.links() && self.links().length > 0) {
                 var the_links = [];
                 $.each(self.links(), function(i, link) {
@@ -359,6 +369,11 @@ define([
                 'deployment': {"links": the_links}
             };
             self.putToDeployment(data);
+        }
+
+        self.removeLink = function(link) {
+            self.links.remove(link);
+            self.updateLinks();
         };
 
         self.addVolumes = function() {
@@ -366,27 +381,10 @@ define([
                 self.volumes.push(this.volumeToAdd());
                 self.volumeToAdd("");
             }
-            var data = {};
-            if (self.volumes() && self.volumes().length > 0) {
-                var volumes = [];
-                $.each(self.volumes(), function(i, volume) {
-                    if (volume.includes(':')) {
-                        var pair = volume.split(':');
-                        volumes.push({
-                            'app_name': pair[0],
-                            'image_tag': pair[1]
-                        });
-                    }
-                });
-            }
-            data = {
-                'deployment': {"volumes": volumes}
-            };
-            self.putToDeployment(data);
         };
         
-        self.removeVolume = function(volume) {
-            self.volumes.remove(volume);
+        self.updateVolumes = function() {
+            var data = {};
             if (self.links() && self.links().length > 0) {
                 var the_volumes = [];
                 $.each(self.volumes(), function(i, volume) {
@@ -401,12 +399,13 @@ define([
             } else { 
                 var the_volumes = []
             }
-            
             data = {
                 'deployment': {"volumes": the_volumes}
             };
-            console.log(data["volumes"]);
             self.putToDeployment(data);
+            }
+            self.removeVolume = function(volume) {
+                self.volumes.remove(volume);
         };
 
          self.addEnvVar = function() {
