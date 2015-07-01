@@ -273,40 +273,45 @@ define([
                 }
                 self.volumeToAdd(e.params.data.text);
             });
-
-            $('#mappedPortsField').click(function() {
+            self.mappedPorts.subscribe(function (newName) {
+            if (newName) {
                 $("#hideMappedPorts").show();
+            }
             });
-            $('#mappedVolumesField').click(function() {
-                $("#hideMappedVolumes").show();
-            });
-            $('#envVarField').click(function() {
-                $("#hideEnvVars").show();
-            });
-            $('#hostsButton').click(function() {
-                $("#hideConfigHosts").show();
-            });
-            $('#linkedAppButton').click(function() {
-                $("#hideLinkedApps").show();
-            });
-            $('#linkedVolumesButton').click(function() {
-                $("#hideLinkedVolumes").show();
-            });
-            $('#statusEndpointField').click(function() {
-                $('#hideStatusEndpoint').show();
-            });
-            $('#statusPortField').click(function() {
-                $('#hideStatusPort').show();
-            });
-            $('#launchButton').click(function() {
-                $("#hideMappedPorts").hide();
-                $("#hideMappedVolumes").hide();
-                $("#hideEnvVars").hide();
-                $("#hideConfigHosts").hide();
-                $("#hideLinkedApps").hide();
-                $("#hideLinkedVolumes").hide();
-                $("#hideStatusEnpoint").hide();
-            });
+
+            // $('#mappedPortsField').click(function() {
+            //     $("#hideMappedPorts").show();
+            // });
+            // $('#mappedVolumesField').click(function() {
+            //     $("#hideMappedVolumes").show();
+            // });
+            // $('#envVarField').click(function() {
+            //     $("#hideEnvVars").show();
+            // });
+            // $('#hostsButton').click(function() {
+            //     $("#hideConfigHosts").show();
+            // });
+            // $('#linkedAppButton').click(function() {
+            //     $("#hideLinkedApps").show();
+            // });
+            // $('#linkedVolumesButton').click(function() {
+            //     $("#hideLinkedVolumes").show();
+            // });
+            // $('#statusEndpointField').click(function() {
+            //     $('#hideStatusEndpoint').show();
+            // });
+            // $('#statusPortField').click(function() {
+            //     $('#hideStatusPort').show();
+            // });
+            // $('#launchButton').click(function() {
+            //     $("#hideMappedPorts").hide();
+            //     $("#hideMappedVolumes").hide();
+            //     $("#hideEnvVars").hide();
+            //     $("#hideConfigHosts").hide();
+            //     $("#hideLinkedApps").hide();
+            //     $("#hideLinkedVolumes").hide();
+            //     $("#hideStatusEnpoint").hide();
+            // });
         };
 
         self.addHost = function() {

@@ -17,19 +17,18 @@
 </div>
 <div class="row" id="statusEndpointField">
   <strong class="col-md-2">Status Endpoint: </strong>
-  <span  class="col-md-2" data-bind="editable: statusEndpoint, editableOptions: {url: updateDeployment}"></span>
+  <span  class="col-md-2" data-bind="editable: statusEndpoint, editableOptions: {url: updateDeployment, mode: 'inline'}"></span>
 </div>
   <div id="hideStatusEndpoint" class="collapse alert alert-info"> Changing status endpoint requires manual re-deployment. </div>
 <div id="statusPortField" class="row">
   <strong class="col-md-2">Status Port: </strong>
-  <span class="col-md-2" data-bind="editable: statusPort, editableOptions: {url: updateDeployment}"></span>
+  <span class="col-md-2" data-bind="editable: statusPort, editableOptions: {url: updateDeployment, mode:'inline'}"></span>
 </div>
   <div id="hideStatusPort" class="collapse alert alert-info"> Changing status port requires manual re-deployment. </div>
 <p>
 <strong>Mapped Ports: </strong>
   <ul class="list-group" data-bind="foreach: mappedPorts">
-    <li class="list-group-item" data-bind="text: $data"></li>
-    <a href="#" data-bind="click: $parent.removeMappedPort">Remove</a>
+    <li class="list-group-item row"><p class="col-md-2" data-bind="text: $data"></p><a class="col-md-2" href="#" data-bind="click: $parent.removeMappedPort">Remove</a></li>
   </ul>
   <form data-bind="submit: addMappedPort">
     <input id="mappedPortsField" data-bind='value: mappedPortToAdd, valueUpdate: "afterkeydown"' />
