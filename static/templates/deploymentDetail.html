@@ -3,7 +3,7 @@
 <div class="row">
   <h2 class="sub-header col-md-4" data-bind="text: appName"></h2>
   <div class="col-md-offset-6 col-md-2">
-    <button data-bind="click: launch" class="btn btn-primary">Launch Deployment</button>
+    <button id="launchButton" data-bind="click: launch" class="btn btn-primary">Launch Deployment</button>
   </div>
 </div>
 
@@ -31,9 +31,10 @@
     <a href="#" data-bind="click: $parent.removeMappedPort">Remove</a>
   </ul>
   <form data-bind="submit: addMappedPort">
-    <input data-bind='value: mappedPortToAdd, valueUpdate: "afterkeydown"' />
+    <input id="mappedPortsField" data-bind='value: mappedPortToAdd, valueUpdate: "afterkeydown"' />
     <button type="submit" class="btn btn-primary" data-bind="enable: mappedPortToAdd().length > 0">Add</button>
   </form>
+  <div id="hideMappedPorts" class="collapse alert alert-info"> Adding mapped ports requires manual re-deployment. </div>
 </p> 
 <p>
   <strong>Mapped Volumes: </strong>
@@ -42,9 +43,10 @@
       <a href="#" data-bind="click: $parent.removeMappedVolume ">Remove</a>
   </ul>
     <form data-bind="submit: addMappedVolume">
-      <input data-bind='value: mappedVolumeToAdd, valueUpdate: "afterkeydown"' />
+      <input id="mappedVolumesField" data-bind='value: mappedVolumeToAdd, valueUpdate: "afterkeydown"' />
       <button type="submit" class="btn btn-primary" data-bind="enable: mappedVolumeToAdd().length > 0">Add</button>
     </form>
+    <div class="collapse alert alert-info" id="hideMappedVolumes"> Adding mapped volumes requires manual re-deployment. </div>
 </p>
 <p>
   <strong>Environment Variables: </strong>
@@ -54,9 +56,10 @@
     <a href="#" data-bind="click: $parent.removeEnvVar ">Remove</a>
   </ul>
    <form data-bind="submit: addEnvVar">
-      <input data-bind='value: envVarToAdd, valueUpdate: "afterkeydown"' />
+      <input id="envVarField" data-bind='value: envVarToAdd, valueUpdate: "afterkeydown"' />
       <button type="submit" class="btn btn-primary" data-bind="enable: envVarToAdd().length > 0">Add</button>
-  </form> 
+  </form>
+  <div class="collapse alert alert-info" id='hideEnvVars'> Adding environment variables requires manual re-deployment. </div> 
 </p>
 <br>
 <p>
@@ -68,8 +71,9 @@
 </p>
   <form data-bind="submit: addHost">
     <select style="width: 100%" multiple="true" required="true" class="form-control" id="inputHosts2"></select> 
-  <button type="submit" class="btn btn-primary">Add</button>
+  <button id="hostsButton"type="submit" class="btn btn-primary">Add</button>
   </form> 
+    <div class="collapse alert alert-info" id="hideConfigHosts"> Adding hosts requires manual re-deployment. </div>
 <!--<p data-bind="visible: links().length"> -->
 <p>
 <br>
@@ -81,8 +85,10 @@
 </p>
 <form data-bind="submit: addLinks">
   <select style="width: 100%" require="true" class="form-control" id="inputLinkedApp"></select> 
-  <button type="submit" class="btn btn-primary" id="linkedAppButton">Add</button>
+  <button id="linkedAppButton" type="submit" class="btn btn-primary" id="linkedAppButton">Add</button>
 </form>
+<div class="collapse alert alert-info" id="hideLinkedApps"> Adding linked apps requires manual re-deployment. </div>
+
 <!--<p data-bind="visible: volumes().length"> -->
 <p>
 <br>
@@ -94,8 +100,9 @@
 </p>
 <form data-bind="submit: addVolumes">
   <select style="width: 100%" require="true" class="form-control" id="inputLinkedVolume"></select> 
-  <button type="submit" class="btn btn-primary" id="linkedVolumeButton">Add</button>
+  <button id="linkedVolumesButton" type="submit" class="btn btn-primary" id="linkedVolumeButton">Add</button>
 </form>
+  <div class="collapse alert alert-info" id="hideLinkedVolumes"> Adding linked volumes requires manual re-deployment. </div>
 <br>
 <div class="table-responsive">
   <h4 class="sub-header">Containers</h4>

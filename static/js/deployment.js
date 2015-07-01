@@ -273,6 +273,25 @@ define([
                 }
                 self.volumeToAdd(e.params.data.text);
             });
+
+            $('#mappedPortsField').click(function() {
+                $("#hideMappedPorts").show();
+            });
+            $('#mappedVolumesField').click(function() {
+                $("#hideMappedVolumes").show();
+            });
+            $('#envVarField').click(function() {
+                $("#hideEnvVars").show();
+            });
+            $('#hostsButton').click(function() {
+                $("#hideConfigHosts").show();
+            });
+            $('#linkedAppButton').click(function() {
+                $("#hideLinkedApps").show();
+            });
+            $('#linkedVolumesButton').click(function() {
+                $("#hideLinkedVolumes").show();
+            });
         };
 
         self.addHost = function() {
