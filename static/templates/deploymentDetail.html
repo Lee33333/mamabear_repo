@@ -15,15 +15,16 @@
   <strong class="col-md-2">Environment: </strong>
   <span class="col-md-2" data-bind="text: environment"></span>
 </div>
-<div class="row">
+<div class="row" id="statusEndpointField">
   <strong class="col-md-2">Status Endpoint: </strong>
-  <span class="col-md-2" data-bind="editable: statusEndpoint, editableOptions: {url: updateDeployment}"></span>
+  <span  class="col-md-2" data-bind="editable: statusEndpoint, editableOptions: {url: updateDeployment}"></span>
 </div>
-<div class="row">
+  <div id="hideStatusEndpoint" class="collapse alert alert-info"> Changing status endpoint requires manual re-deployment. </div>
+<div id="statusPortField" class="row">
   <strong class="col-md-2">Status Port: </strong>
   <span class="col-md-2" data-bind="editable: statusPort, editableOptions: {url: updateDeployment}"></span>
 </div>
-
+  <div id="hideStatusPort" class="collapse alert alert-info"> Changing status port requires manual re-deployment. </div>
 <p>
 <strong>Mapped Ports: </strong>
   <ul class="list-group" data-bind="foreach: mappedPorts">

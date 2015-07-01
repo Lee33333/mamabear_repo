@@ -292,6 +292,21 @@ define([
             $('#linkedVolumesButton').click(function() {
                 $("#hideLinkedVolumes").show();
             });
+            $('#statusEndpointField').click(function() {
+                $('#hideStatusEndpoint').show();
+            });
+            $('#statusPortField').click(function() {
+                $('#hideStatusPort').show();
+            });
+            $('#launchButton').click(function() {
+                $("#hideMappedPorts").hide();
+                $("#hideMappedVolumes").hide();
+                $("#hideEnvVars").hide();
+                $("#hideConfigHosts").hide();
+                $("#hideLinkedApps").hide();
+                $("#hideLinkedVolumes").hide();
+                $("#hideStatusEnpoint").hide();
+            });
         };
 
         self.addHost = function() {
