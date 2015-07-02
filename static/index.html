@@ -17,6 +17,7 @@
     <link href="./bootstrap/css/dashboard.css" rel="stylesheet">
     <link href="./datatables/css/jquery.dataTables.min.css" rel="stylesheet">
     <link href="./vendor/css/select2.min.css", rel="stylesheet">
+    <link href="./vendor/css/bootstrap-editable.css", rel="stylesheet">
     
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -34,13 +35,17 @@
             'knockoutamdhelpers': '../vendor/js/knockout-amd-helpers.min',
             'pager': '../vendor/js/pager.min',
             'datatables': '../datatables/js/jquery.dataTables.min',
-            'select2': '../vendor/js/select2.min'
+            'select2': '../vendor/js/select2.min',
+            'editable': '../vendor/js/bootstrap-editable.min',
+            'ko_editable': '../vendor/js/knockout.x-editable.min'
         },
             shim: {
                 'bootstrap': ['jquery'],
                 'datatables': ['jquery'],
                 'knockout': ['jquery'],
-                'pager': ['knockout']
+                'pager': ['knockout'],
+                'editable': ['bootstrap'],
+                'ko_editable': ['editable']
             }
         });
     </script>
@@ -112,7 +117,5 @@
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-    <script src="./bootstrap/js/bootstrap.min.js"></script>
   </body>
 </html>

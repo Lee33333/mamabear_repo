@@ -3,8 +3,11 @@ define([
     'knockout',
     'pager',
     'container',
-    'image'
-], function ($, ko, pager, Container, Image) {
+    'image',
+    'ko_editable',
+    'select2',
+    'knockoutamdhelpers'
+], function ($, ko, pager, Container, Image, ko_editable, select2, knockoutamdhelpers) {
     function Deployment(page) {        
         var self = this;
         
@@ -27,7 +30,15 @@ define([
         self.environmentVariablesString = ko.observable('');
         self.mappedPortsString = ko.observable('');
         self.mappedVolumesString = ko.observable('');
-        
+
+        self.mappedPortToAdd = ko.observable("");
+        self.mappedVolumeToAdd = ko.observable("");
+        self.envVarToAdd = ko.observable("");
+        self.linkToAdd = ko.observable("");
+        self.volumeToAdd = ko.observable("");
+        self.hostToAdd = ko.observable("");
+
+
         self.launch = function() {
             $.ajax({
                 url: self.runPath()
@@ -197,37 +208,312 @@ define([
             return container;
         };
 
-        self.newFromExisting = function(appViewModel) {
-            appViewModel.deployment().parent(self.id());
-            appViewModel.deployment().appName(self.appName());
-            appViewModel.deployment().imageTag(self.imageTag());
-            appViewModel.deployment().environment(self.environment());
-            appViewModel.deployment().statusEndpoint(self.statusEndpoint());
-            appViewModel.deployment().statusPort(self.statusPort());
-            appViewModel.deployment().links(self.links());
-            appViewModel.deployment().volumes(self.volumes());
-            
-            if (self.environmentVariables()) {
-                appViewModel.deployment().environmentVariablesString($.map(self.envVarList(), function(kv, i) {
-                    return kv.name+"="+kv.value 
-                }).join(","));
-            }
+        self.bindUpdateSelects = function(page) {
+            var hostBindArgs = {
+                ajax: {
+                    url: '../mamabear/v1/host',
+                    dataType: 'json',
+                    delay: 250,
+                    processResults: function(data, pg) {
+                        return {
+                            results: $.map(data.hits, function(hit, i) {
+                                return {'text': hit.alias, 'id': hit.hostname};
+                            })
+                        }
+                    }
+                },
+                minimumInputLength: 0
+            };
+            var imageBindArgs = {
+                ajax: {
+                    url: '../mamabear/v1/image',
+                    dataType: 'json',
+                    delay: 250,
+                    processResults: function(data, pg) {
+                        return {
+                            results: $.map(data.hits, function(hit, i) {
+                                return {'text': hit.app_name + ':' + hit.tag, 'id': hit.id};
+                            })
+                        }
+                    }
+                },
+                minimumInputLength: 0
+            };
 
-            if (self.mappedPorts()) {
-                appViewModel.deployment().mappedPortsString(self.mappedPorts().join(","));
-            }
+            $('#inputHosts2').select2(hostBindArgs);
+            $('#inputHosts2').on('select2:select', function(e) {
+                self.hostToAdd({
+                    'hostname': e.params.data.id,
+                    'alias': e.params.data.text 
+                })
+            });
 
-            if (self.mappedVolumes()) {
-                appViewModel.deployment().mappedVolumesString(self.mappedVolumes().join(","));
+            $('#inputLinkedApp').select2(imageBindArgs);
+            $('#inputLinkedApp').on('select2:select', function(e) {
+                var name = e.params.data.text;
+                if (name.includes(":")) {
+                    var pair = name.split(":");
+                    self.linkToAdd({
+                        'app_name': pair[0],
+                        'image_tag': pair[1]
+                    })
+                }
+                self.linkToAdd(e.params.data.text);
+            });
+
+            $('#inputLinkedVolume').select2(imageBindArgs);
+            $('#inputLinkedVolume').on('select2:select', function(e) {
+                var name = e.params.data.text;
+                if (name.includes(":")) {
+                    var pair = name.split(":");
+                    self.linkToAdd({
+                        'app_name': pair[0],
+                        'image_tag': pair[1]
+                    })
+                }
+                self.volumeToAdd(e.params.data.text);
+            });
+            self.mappedPorts.subscribe(function (newName) {
+                
+                if (newName) {
+                    console.log(newName);
+                    $("#hideMappedPorts").show();
+                }
+            });
+            self.mappedVolumes.subscribe(function (newName) {
+                if (newName) {
+                    $("#hideMappedVolumes").toggle();}
+            });
+            self.environmentVariables.subscribe(function (newName) {
+                if (newName) {
+                    $("#hideEnvVars").toggle();}
+            });
+            self.hosts.subscribe(function (newName) {
+                if (newName) {
+                    $("#hideConfigHosts").toggle();}
+            });
+            self.links.subscribe(function (newName) {
+                if (newName) {
+                    $("#hideLinkedApps").toggle();}
+            });
+            self.volumes.subscribe(function (newName) {
+                if (newName) {
+                    $("#hideLinkedVolumes").toggle();}
+            });
+            self.statusEndpoint.subscribe(function (newName) {
+                if (newName) {
+                    $("#hideStatusEndpoint").toggle();}
+            });
+            self.statusPort.subscribe(function (newName) {
+                if (newName) {
+                    $("#hideStatusPort").toggle();}
+            });
+            $('#launchButton').click(function() {
+                $('#hideStatusPort').hide();
+                $('#hideStatusEndpoint').hide();
+                $("#hideLinkedVolumes").hide();
+                $("#hideLinkedApps").hide();
+                $("#hideConfigHosts").hide();
+                $("#hideEnvVars").hide();
+                $("#hideMappedVolumes").hide();
+                $("#hideMappedPorts").hide();
+            });
+        };
+
+        self.addHost = function() {
+            if (self.hostToAdd() != "") {
+                self.hosts.push(self.hostToAdd());
+                self.hostToAdd("");
             }
+            console.log(self.hosts());
+            self.updateHost();
+            $('#inputHosts2').val(null).trigger('change'); 
+        };
+
+        self.removeHost = function(host) {
+            self.hosts.remove(host);
+            self.updateHost();
+        };
+
+        self.updateHost = function() {
+            if (self.hosts() && self.hosts().length > 0) {
+                var hosts = [];
+                $.each(self.hosts(), function(i, host) {
+                    hosts.push(host.hostname);
+                });
+            }  else {
+                var hosts = []
+            }
+            data = {
+                'deployment': {'hosts': hosts}
+            };
+            self.putToDeployment(data);
+        };
+
+        self.addMappedPort = function() {
+            if (self.mappedPortToAdd() != "") {
+                self.mappedPorts.push(this.mappedPortToAdd()); // Adds the item. Writing to the "items" observableArray causes any associated UI to update.
+                self.mappedPortToAdd("");
+            }
+            data = {
+                'deployment': {"mapped_ports": self.mappedPorts()}
+            };
+            self.putToDeployment(data);
+        };
+        self.removeMappedPort = function(mappedPort) {
+            self.mappedPorts.remove(mappedPort);
+            data = {
+                'deployment': {"mapped_ports": self.mappedPorts()}
+            };
+            self.putToDeployment(data);
+        };
+
+        self.addMappedVolume = function() {
+            if (self.mappedVolumeToAdd() != "") {
+                self.mappedVolumes.push(this.mappedVolumeToAdd()); // Adds the item. Writing to the "items" observableArray causes any associated UI to update.
+                self.mappedVolumeToAdd("");
+            }
+            data = {
+                'deployment': {"mapped_volumes": self.mappedVolumes()}
+            };
+            self.putToDeployment(data);
+        };
+        self.removeMappedVolume = function(mappedVolume) {
+            self.mappedVolumes.remove(mappedVolume);
+            data = {
+                'deployment': {"mapped_volumes": self.mappedVolumes()}
+            };
+            self.putToDeployment(data);
+        };
+
+        self.addLinks = function() {
+            if (self.linkToAdd() !== "") {
+                self.links.push(self.linkToAdd());
+                self.linkToAdd("");
+            }
+            self.updateLinks();
+            $('#inputLinkedApp').val(null).trigger('change');
+        };
+
+        self.updateLinks = function() {
+            if (self.links() && self.links().length > 0) {
+                var the_links = [];
+                $.each(self.links(), function(i, link) {
+                    if (link.includes(':')) {
+                        var pair = link.split(':');
+                        the_links.push({
+                            'app_name': pair[0],
+                            'image_tag': pair[1]
+                        });
+                    }
+                });
+            } else { 
+                var the_links = []
+            }
+            data = {
+                'deployment': {"links": the_links}
+            };
+            self.putToDeployment(data);
+        }
+
+        self.removeLink = function(link) {
+            self.links.remove(link);
+            self.updateLinks();
+        };
+
+        self.addVolumes = function() {
+            if (self.volumeToAdd() != "") {
+                self.volumes.push(this.volumeToAdd());
+                self.volumeToAdd("");
+            }
+            $('#inputLinkedVolume').val(null).trigger('change');
+        };
+        
+        self.updateVolumes = function() {
+            var data = {};
+            if (self.links() && self.links().length > 0) {
+                var the_volumes = [];
+                $.each(self.volumes(), function(i, volume) {
+                    if (volume.includes(':')) {
+                        var pair = volume.split(':');
+                        the_volumes.push({
+                            'app_name': pair[0],
+                            'image_tag': pair[1]
+                        });
+                    }
+                });
+            } else { 
+                var the_volumes = []
+            }
+            data = {
+                'deployment': {"volumes": the_volumes}
+            };
+            self.putToDeployment(data);
+            };
+
+        self.removeVolume = function(volume) {
+                self.volumes.remove(volume);
+        };
+
+         self.addEnvVar = function() {
+            if (self.envVarToAdd() != "") {
+            var newEnvVar = this.envVarToAdd(); // foo=bar            
+            var pair = newEnvVar.split('=');
+            newEnvVar = {"key": pair[0], "value": pair[1] }
+            self.environmentVariables()[newEnvVar.key] = newEnvVar.value; // Adds the item. Writing to the "items" observableArray causes any associated UI to update.
+            self.envVarToAdd("");
+            console.log(this.environmentVariables());
+            data = {'deployment': {"environment_variables": self.environmentVariables()}};
+            console.log(data);
+
+            self.putToDeployment(data);
+            self.environmentVariables.valueHasMutated();
+        }
+        };
+
+        self.removeEnvVar = function(envVar) {
+            name = envVar.name;
+            delete self.environmentVariables()[name];
             
-            pager.navigate('#new_deployment');
-            
-            // This is a dirty hack; trigger select2 changes isn't working
-            $('#select2-inputAppName-container').text(self.appName());
-            $('#inputAppName').append("<option value='"+self.appName()+"'>"+self.appName()+"</option>")
-            $('#inputAppName').val(self.appName()).trigger("change");
-            
+            console.log("deleting");
+            console.log(self.environmentVariables());
+
+            data = {'deployment': {"environment_variables": self.environmentVariables()}};
+
+            self.putToDeployment(data);
+            self.environmentVariables.valueHasMutated();
+        };
+
+
+        self.updateDeployment = function(params) {
+            if (params.name === 'statusEndpoint' ) {
+                var the_name = 'status_endpoint';
+            } else if (params.name === 'statusPort') {
+                var the_name = 'status_port';
+            } 
+            var dep_data = {
+            };
+            dep_data[the_name] = params.value;
+            data = {
+                'deployment': dep_data
+            };
+            self.putToDeployment(data);
+
+        };
+
+        self.putToDeployment = function(data) {
+            var targetUrl = '../mamabear/v1/deployment/'+self.appName()+'/'+self.imageTag()+'/'+self.environment();
+             $.ajax({
+                 type: 'PUT',
+                 data: ko.toJSON(data),
+                 url: targetUrl,
+                 contentType:'application/json'
+             }).done(function(json) {
+                console.log(json);
+             }).fail(function(json) {
+                console.log("Failed updating deployment");
+                //add alert message here
+             });
         };
         
         self.deleteDeployment = function() {
