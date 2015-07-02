@@ -301,52 +301,6 @@ define([
 
                 $('#inputLinkedVolume').val(null).trigger('change');
             });
-            
-            self.mappedPorts.subscribe(function (newName) {                
-                if (newName) {
-                    console.log(newName);
-                    $("#hideMappedPorts").show();
-                }
-            });
-            
-            self.mappedVolumes.subscribe(function (newName) {
-                if (newName) {
-                    $("#hideMappedVolumes").toggle();}
-            });
-            self.environmentVariables.subscribe(function (newName) {
-                if (newName) {
-                    $("#hideEnvVars").toggle();}
-            });
-            self.hosts.subscribe(function (newName) {
-                if (newName) {
-                    $("#hideConfigHosts").toggle();}
-            });
-            self.links.subscribe(function (newName) {
-                if (newName) {
-                    $("#hideLinkedApps").toggle();}
-            });
-            self.volumes.subscribe(function (newName) {
-                if (newName) {
-                    $("#hideLinkedVolumes").toggle();}
-            });
-            self.statusEndpoint.subscribe(function (newName) {
-                if (newName) {
-                    $("#hideStatusEndpoint").toggle();}
-            });
-            self.statusPort.subscribe(function (newName) {
-                if (newName) {
-                    $("#hideStatusPort").toggle();}
-            });
-            $('#launchButton').click(function() {
-                $('#hideStatusPort').hide();
-                $('#hideStatusEndpoint').hide();
-                $("#hideLinkedVolumes").hide();
-                $("#hideLinkedApps").hide();
-                $("#hideConfigHosts").hide();
-                $("#hideEnvVars").hide();
-                $("#hideMappedVolumes").hide();
-                $("#hideMappedPorts").hide();
-            });
         };
         
         self.addMappedPort = function() {
@@ -359,6 +313,7 @@ define([
             };
             self.putToDeployment(data);
         };
+        
         self.removeMappedPort = function(mappedPort) {
             self.mappedPorts.remove(mappedPort);
             data = {
@@ -377,6 +332,7 @@ define([
             };
             self.putToDeployment(data);
         };
+        
         self.removeMappedVolume = function(mappedVolume) {
             self.mappedVolumes.remove(mappedVolume);
             data = {

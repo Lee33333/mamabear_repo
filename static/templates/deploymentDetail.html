@@ -48,7 +48,10 @@
       <div class="col-md-12">
         <p>
           <strong>Mapped Ports: </strong>
-          <span class="glyphicon glyphicon-pencil" data-bind="click: editMappedPorts"></span>
+          <span style="opacity: 0.4" class="glyphicon glyphicon-pencil" data-bind="click: editMappedPorts"></span>
+          <div class="alert alert-info" data-bind="visible: editingMappedPorts">
+            Requires a redeploy before changes will take effect on the containers.
+          </div>
         </p>
         <div class="row" data-bind="visible: editingMappedPorts">
           <div class="col-md-4">
@@ -66,7 +69,7 @@
             <div class="list-group" data-bind="foreach: mappedPorts">
               <div class="list-group-item">
                 <span data-bind="text: $data"></span>
-                <span style="cursor: pointer" class="glyphicon glyphicon-remove pull-right" data-bind="click: $parent.removeMappedPort"></span>
+                <span style="cursor: pointer; opacity: 0.7" class="glyphicon glyphicon-remove pull-right" data-bind="click: $parent.removeMappedPort"></span>
               </div>
             </div>
           </div>
@@ -76,7 +79,10 @@
       <div class="col-md-12">
         <p>
           <strong>Mapped Volumes: </strong>
-          <span class="glyphicon glyphicon-pencil" data-bind="click: editMappedVolumes"></span>
+          <span style="opacity: 0.4" class="glyphicon glyphicon-pencil" data-bind="click: editMappedVolumes"></span>
+          <div class="alert alert-info" data-bind="visible: editingMappedVolumes">
+            Requires a redeploy before changes will take effect on the containers.
+          </div>
         </p>
         <div class="row" data-bind="visible: editingMappedVolumes">
           <div class="col-md-4">
@@ -94,7 +100,7 @@
             <div class="list-group" data-bind="foreach: mappedVolumes">
               <div class="list-group-item">
                 <span data-bind="text: $data"></span>
-                <span style="cursor: pointer" class="glyphicon glyphicon-remove pull-right" data-bind="click: $parent.removeMappedVolume"></span>
+                <span style="cursor: pointer; opacity: 0.7" class="glyphicon glyphicon-remove pull-right" data-bind="click: $parent.removeMappedVolume"></span>
               </div>
             </div>
           </div>
@@ -104,7 +110,10 @@
       <div class="col-md-12">
         <p>
           <strong>Environment Variables: </strong>
-          <span class="glyphicon glyphicon-pencil" data-bind="click: editEnvVars"></span>
+          <span style="opacity: 0.4" class="glyphicon glyphicon-pencil" data-bind="click: editEnvVars"></span>
+          <div class="alert alert-info" data-bind="visible: editingEnvVars">
+            Requires a redeploy before changes will take effect on the containers.
+          </div>
         </p>
         <div class="row" data-bind="visible: editingEnvVars">
           <div class="col-md-4">
@@ -122,7 +131,7 @@
             <div class="list-group" data-bind="foreach: envVarList">
               <div class="list-group-item">
                 <span data-bind="text: name+'='+value"></span>
-                <span style="cursor: pointer" class="glyphicon glyphicon-remove pull-right" data-bind="click: $parent.removeEnvVar"></span>
+                <span style="cursor: pointer; opacity: 0.7" class="glyphicon glyphicon-remove pull-right" data-bind="click: $parent.removeEnvVar"></span>
               </div>
             </div>
           </div>
@@ -132,7 +141,10 @@
       <div class="col-md-12">
         <p>
           <strong>Linked Apps: </strong>
-          <span class="glyphicon glyphicon-pencil" data-bind="click: editLinks"></span>
+          <span style="opacity: 0.4" class="glyphicon glyphicon-pencil" data-bind="click: editLinks"></span>
+          <div class="alert alert-info" data-bind="visible: editingLinks">
+            Requires a redeploy before changes will take effect on the containers.
+          </div>
         </p>
         <div class="row" data-bind="visible: editingLinks">
           <div class="col-md-4">
@@ -145,7 +157,7 @@
             <div class="list-group" data-bind="foreach: links">
               <div class="list-group-item">
                 <span data-bind="text: $data"></span>
-                <span style="cursor: pointer" class="glyphicon glyphicon-remove pull-right" data-bind="click: $parent.removeLink"></span>
+                <span style="cursor: pointer; opacity: 0.7" class="glyphicon glyphicon-remove pull-right" data-bind="click: $parent.removeLink"></span>
               </div>
             </div>
           </div>
@@ -155,7 +167,10 @@
       <div class="col-md-12">
         <p>
           <strong>Linked Volumes: </strong>
-          <span class="glyphicon glyphicon-pencil" data-bind="click: editVolumes"></span>
+          <span style="opacity: 0.4" class="glyphicon glyphicon-pencil" data-bind="click: editVolumes"></span>
+          <div class="alert alert-info" data-bind="visible: editingVolumes">
+            Requires a redeploy before changes will take effect on the containers.
+          </div>
         </p>
         <div class="row" data-bind="visible: editingVolumes">
           <div class="col-md-4">
@@ -168,7 +183,7 @@
             <div class="list-group" data-bind="foreach: volumes">
               <div class="list-group-item">
                 <span data-bind="text: $data"></span>
-                <span style="cursor: pointer" class="glyphicon glyphicon-remove pull-right" data-bind="click: $parent.removeVolume"></span>
+                <span style="cursor: pointer; opacity: 0.7" class="glyphicon glyphicon-remove pull-right" data-bind="click: $parent.removeVolume"></span>
               </div>
             </div>
           </div>
@@ -192,7 +207,7 @@
       <div class="col-md-12">
         <p>
           <strong>Configured: </strong>
-          <span class="glyphicon glyphicon-pencil" data-bind="click: editHosts"></span>
+          <span style="opacity: 0.4" class="glyphicon glyphicon-pencil" data-bind="click: editHosts"></span>
         </p>
         <div class="row" data-bind="visible: editingHosts">
           <div class="col-md-4">
@@ -205,7 +220,7 @@
             <div class="list-group" data-bind="foreach: hosts">
               <div class="list-group-item">
                 <a data-bind="attr: {href: '#hosts/'+hostname}, text: alias"></a>
-                <span style="cursor: pointer" class="glyphicon glyphicon-remove pull-right" data-bind="click: $parent.removeHost"></span>
+                <span style="cursor: pointer; opacity: 0.7" class="glyphicon glyphicon-remove pull-right" data-bind="click: $parent.removeHost"></span>
               </div>
             </div>
           </div>
