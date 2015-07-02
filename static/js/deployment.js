@@ -38,6 +38,23 @@ define([
         self.volumeToAdd = ko.observable("");
         self.hostToAdd = ko.observable("");
 
+        self.editingMappedPorts = ko.observable(false);
+        self.editMappedPorts = function() {self.editingMappedPorts(!self.editingMappedPorts());};
+
+        self.editingMappedVolumes = ko.observable(false);
+        self.editMappedVolumes = function() {self.editingMappedVolumes(!self.editingMappedVolumes());};
+
+        self.editingEnvVars = ko.observable(false);
+        self.editEnvVars = function() {self.editingEnvVars(!self.editingEnvVars());};
+
+        self.editingLinks = ko.observable(false);
+        self.editLinks = function() {self.editingLinks(!self.editingLinks());};
+
+        self.editingVolumes = ko.observable(false);
+        self.editVolumes = function() {self.editingVolumes(!self.editingVolumes());};
+
+        self.editingHosts = ko.observable(false);
+        self.editHosts = function() {self.editingHosts(!self.editingHosts());};
 
         self.launch = function() {
             $.ajax({

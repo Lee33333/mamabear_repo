@@ -48,15 +48,15 @@
       <div class="col-md-12">
         <p>
           <strong>Mapped Ports: </strong>
+          <span class="glyphicon glyphicon-pencil" data-bind="click: editMappedPorts"></span>
         </p>
-        <!-- TODO: Hide this whole div unless adding mapped ports -->
-        <div class="row">
+        <div class="row" data-bind="visible: editingMappedPorts">
           <div class="col-md-4">
             <div class="input-group">
               <input type="text" class="form-control" id="mappedPortsField" data-bind="value: mappedPortToAdd, valueUpdate: 'afterkeydown'"/>
               <span class="input-group-btn">
                 <button class="btn btn-primary" data-bind="enable: mappedPortToAdd().length, click: addMappedPort">Add</button>
-              </span>
+              </span>              
             </div>
           </div>
         </div>
@@ -65,8 +65,8 @@
           <div class="col-md-4">
             <div class="list-group" data-bind="foreach: mappedPorts">
               <div class="list-group-item">
-                <button type="button" class="badge" data-bind="click: $parent.removeMappedPort">Remove</button>
-                <span data-bind="text: $data"></span>            
+                <span data-bind="text: $data"></span>
+                <span style="cursor: pointer" class="glyphicon glyphicon-remove pull-right" data-bind="click: $parent.removeMappedPort"></span>
               </div>
             </div>
           </div>
@@ -76,9 +76,9 @@
       <div class="col-md-12">
         <p>
           <strong>Mapped Volumes: </strong>
+          <span class="glyphicon glyphicon-pencil" data-bind="click: editMappedVolumes"></span>
         </p>
-        <!-- TODO: Hide this whole div unless adding mapped volumes -->
-        <div class="row">
+        <div class="row" data-bind="visible: editingMappedVolumes">
           <div class="col-md-4">
             <div class="input-group">
               <input type="text" class="form-control" id="mappedVolumesField" data-bind="value: mappedVolumeToAdd, valueUpdate: 'afterkeydown'"/>
@@ -93,8 +93,8 @@
           <div class="col-md-4">
             <div class="list-group" data-bind="foreach: mappedVolumes">
               <div class="list-group-item">
-                <button type="button" class="badge" data-bind="click: $parent.removeMappedVolume">Remove</button>
-                <span data-bind="text: $data"></span>            
+                <span data-bind="text: $data"></span>
+                <span style="cursor: pointer" class="glyphicon glyphicon-remove pull-right" data-bind="click: $parent.removeMappedVolume"></span>
               </div>
             </div>
           </div>
@@ -104,9 +104,9 @@
       <div class="col-md-12">
         <p>
           <strong>Environment Variables: </strong>
+          <span class="glyphicon glyphicon-pencil" data-bind="click: editEnvVars"></span>
         </p>
-        <!-- TODO: Hide this whole div unless adding environment variables -->
-        <div class="row">
+        <div class="row" data-bind="visible: editingEnvVars">
           <div class="col-md-4">
             <div class="input-group">
               <input type="text" class="form-control" id="envVarField" data-bind="value: envVarToAdd, valueUpdate: 'afterkeydown'"/>
@@ -121,8 +121,8 @@
           <div class="col-md-4">
             <div class="list-group" data-bind="foreach: envVarList">
               <div class="list-group-item">
-                <button type="button" class="badge" data-bind="click: $parent.removeEnvVar">Remove</button>
-                <span data-bind="text: name+'='+value"></span>            
+                <span data-bind="text: name+'='+value"></span>
+                <span style="cursor: pointer" class="glyphicon glyphicon-remove pull-right" data-bind="click: $parent.removeEnvVar"></span>
               </div>
             </div>
           </div>
@@ -132,9 +132,9 @@
       <div class="col-md-12">
         <p>
           <strong>Linked Apps: </strong>
+          <span class="glyphicon glyphicon-pencil" data-bind="click: editLinks"></span>
         </p>
-        <!-- TODO: Hide this whole div unless adding new linked apps -->
-        <div class="row">
+        <div class="row" data-bind="visible: editingLinks">
           <div class="col-md-4">
             <select style="width: 100%" type="text" class="form-control" id="inputLinkedApp"></select>
           </div>
@@ -144,8 +144,8 @@
           <div class="col-md-4">
             <div class="list-group" data-bind="foreach: links">
               <div class="list-group-item">
-                <button type="button" class="badge" data-bind="click: $parent.removeLink">Remove</button>
-                <span data-bind="text: $data"></span>            
+                <span data-bind="text: $data"></span>
+                <span style="cursor: pointer" class="glyphicon glyphicon-remove pull-right" data-bind="click: $parent.removeLink"></span>
               </div>
             </div>
           </div>
@@ -155,9 +155,9 @@
       <div class="col-md-12">
         <p>
           <strong>Linked Volumes: </strong>
+          <span class="glyphicon glyphicon-pencil" data-bind="click: editVolumes"></span>
         </p>
-        <!-- TODO: Hide this whole div unless adding new linked apps -->
-        <div class="row">
+        <div class="row" data-bind="visible: editingVolumes">
           <div class="col-md-4">
             <select style="width: 100%" type="text" class="form-control" id="inputLinkedVolume"></select>
           </div>
@@ -167,8 +167,8 @@
           <div class="col-md-4">
             <div class="list-group" data-bind="foreach: volumes">
               <div class="list-group-item">
-                <button type="button" class="badge" data-bind="click: $parent.removeVolume">Remove</button>
-                <span data-bind="text: $data"></span>            
+                <span data-bind="text: $data"></span>
+                <span style="cursor: pointer" class="glyphicon glyphicon-remove pull-right" data-bind="click: $parent.removeVolume"></span>
               </div>
             </div>
           </div>
@@ -192,9 +192,9 @@
       <div class="col-md-12">
         <p>
           <strong>Configured: </strong>
+          <span class="glyphicon glyphicon-pencil" data-bind="click: editHosts"></span>
         </p>
-        <!-- TODO: Hide this whole div unless adding new linked apps -->
-        <div class="row">
+        <div class="row" data-bind="visible: editingHosts">
           <div class="col-md-4">
             <select style="width: 100%" type="text" class="form-control" id="inputDeploymentHosts"></select>
           </div>
@@ -204,8 +204,8 @@
           <div class="col-md-4">
             <div class="list-group" data-bind="foreach: hosts">
               <div class="list-group-item">
-                <button type="button" class="badge" data-bind="click: $parent.removeHost">Remove</button>
-                <a data-bind="attr: {href: '#hosts/'+hostname}, text: alias"></a>            
+                <a data-bind="attr: {href: '#hosts/'+hostname}, text: alias"></a>
+                <span style="cursor: pointer" class="glyphicon glyphicon-remove pull-right" data-bind="click: $parent.removeHost"></span>
               </div>
             </div>
           </div>
