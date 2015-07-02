@@ -274,44 +274,50 @@ define([
                 self.volumeToAdd(e.params.data.text);
             });
             self.mappedPorts.subscribe(function (newName) {
-            if (newName) {
-                $("#hideMappedPorts").show();
-            }
+                
+                if (newName) {
+                    console.log(newName);
+                    $("#hideMappedPorts").show();
+                }
             });
-
-            // $('#mappedPortsField').click(function() {
-            //     $("#hideMappedPorts").show();
-            // });
-            // $('#mappedVolumesField').click(function() {
-            //     $("#hideMappedVolumes").show();
-            // });
-            // $('#envVarField').click(function() {
-            //     $("#hideEnvVars").show();
-            // });
-            // $('#hostsButton').click(function() {
-            //     $("#hideConfigHosts").show();
-            // });
-            // $('#linkedAppButton').click(function() {
-            //     $("#hideLinkedApps").show();
-            // });
-            // $('#linkedVolumesButton').click(function() {
-            //     $("#hideLinkedVolumes").show();
-            // });
-            // $('#statusEndpointField').click(function() {
-            //     $('#hideStatusEndpoint').show();
-            // });
-            // $('#statusPortField').click(function() {
-            //     $('#hideStatusPort').show();
-            // });
-            // $('#launchButton').click(function() {
-            //     $("#hideMappedPorts").hide();
-            //     $("#hideMappedVolumes").hide();
-            //     $("#hideEnvVars").hide();
-            //     $("#hideConfigHosts").hide();
-            //     $("#hideLinkedApps").hide();
-            //     $("#hideLinkedVolumes").hide();
-            //     $("#hideStatusEnpoint").hide();
-            // });
+            self.mappedVolumes.subscribe(function (newName) {
+                if (newName) {
+                    $("#hideMappedVolumes").toggle();}
+            });
+            self.environmentVariables.subscribe(function (newName) {
+                if (newName) {
+                    $("#hideEnvVars").toggle();}
+            });
+            self.hosts.subscribe(function (newName) {
+                if (newName) {
+                    $("#hideConfigHosts").toggle();}
+            });
+            self.links.subscribe(function (newName) {
+                if (newName) {
+                    $("#hideLinkedApps").toggle();}
+            });
+            self.volumes.subscribe(function (newName) {
+                if (newName) {
+                    $("#hideLinkedVolumes").toggle();}
+            });
+            self.statusEndpoint.subscribe(function (newName) {
+                if (newName) {
+                    $("#hideStatusEndpoint").toggle();}
+            });
+            self.statusPort.subscribe(function (newName) {
+                if (newName) {
+                    $("#hideStatusPort").toggle();}
+            });
+            $('#launchButton').click(function() {
+                $('#hideStatusPort').hide();
+                $('#hideStatusEndpoint').hide();
+                $("#hideLinkedVolumes").hide();
+                $("#hideLinkedApps").hide();
+                $("#hideConfigHosts").hide();
+                $("#hideEnvVars").hide();
+                $("#hideMappedVolumes").hide();
+                $("#hideMappedPorts").hide();
+            });
         };
 
         self.addHost = function() {
@@ -420,6 +426,7 @@ define([
                 self.volumes.push(this.volumeToAdd());
                 self.volumeToAdd("");
             }
+            $('#inputLinkedVolume').val(null).trigger('change');
         };
         
         self.updateVolumes = function() {
@@ -442,8 +449,9 @@ define([
                 'deployment': {"volumes": the_volumes}
             };
             self.putToDeployment(data);
-            }
-            self.removeVolume = function(volume) {
+            };
+
+        self.removeVolume = function(volume) {
                 self.volumes.remove(volume);
         };
 
