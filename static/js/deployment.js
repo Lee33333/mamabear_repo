@@ -229,6 +229,16 @@ define([
                     url: '../mamabear/v1/image',
                     dataType: 'json',
                     delay: 250,
+                    data: function(params) {
+                        var splits = params.term.split(':');
+                        var r = {};
+                        var app_name = splits[0];
+                        r.app_name = splits[0];
+                        if (splits.length > 1) {
+                            r.image_tag = splits[1];
+                        }                                
+                        return r;
+                    },
                     processResults: function(data, pg) {
                         return {
                             results: $.map(data.hits, function(hit, i) {
@@ -237,49 +247,51 @@ define([
                         }
                     }
                 },
-                minimumInputLength: 0
+                minimumInputLength: 1
             };
 
-            $('#inputHosts2').select2(hostBindArgs);
-            $('#inputHosts2').on('select2:select', function(e) {
-                self.hostToAdd({
+            $('#inputDeploymentHosts').select2(hostBindArgs);
+            $('#inputDeploymentHosts').on('select2:select', function(e) {
+                var newHost = {
                     'hostname': e.params.data.id,
                     'alias': e.params.data.text 
-                })
+                };                
+                if (self.hosts().indexOf(newHost) == -1) {
+                    self.hosts.push(newHost);
+                    self.updateHosts();
+                }
+                $('#inputDeploymentHosts').val(null).trigger('change');
             });
 
             $('#inputLinkedApp').select2(imageBindArgs);
             $('#inputLinkedApp').on('select2:select', function(e) {
-                var name = e.params.data.text;
-                if (name.includes(":")) {
-                    var pair = name.split(":");
-                    self.linkToAdd({
-                        'app_name': pair[0],
-                        'image_tag': pair[1]
-                    })
+                var linkedApp = e.params.data.text;
+                if (self.links().indexOf(linkedApp) == -1) {
+                    self.links.push(linkedApp);
+                    self.updateLinks();
                 }
-                self.linkToAdd(e.params.data.text);
+                
+                $('#inputLinkedApp').val(null).trigger('change');
             });
 
             $('#inputLinkedVolume').select2(imageBindArgs);
             $('#inputLinkedVolume').on('select2:select', function(e) {
-                var name = e.params.data.text;
-                if (name.includes(":")) {
-                    var pair = name.split(":");
-                    self.linkToAdd({
-                        'app_name': pair[0],
-                        'image_tag': pair[1]
-                    })
+                var linkedVolume = e.params.data.text;
+                if (self.volumes().indexOf(linkedVolume) == -1) {
+                    self.volumes.push(linkedVolume);
+                    self.updateVolumes();
                 }
-                self.volumeToAdd(e.params.data.text);
+
+                $('#inputLinkedVolume').val(null).trigger('change');
             });
-            self.mappedPorts.subscribe(function (newName) {
-                
+            
+            self.mappedPorts.subscribe(function (newName) {                
                 if (newName) {
                     console.log(newName);
                     $("#hideMappedPorts").show();
                 }
             });
+            
             self.mappedVolumes.subscribe(function (newName) {
                 if (newName) {
                     $("#hideMappedVolumes").toggle();}
@@ -319,37 +331,7 @@ define([
                 $("#hideMappedPorts").hide();
             });
         };
-
-        self.addHost = function() {
-            if (self.hostToAdd() != "") {
-                self.hosts.push(self.hostToAdd());
-                self.hostToAdd("");
-            }
-            console.log(self.hosts());
-            self.updateHost();
-            $('#inputHosts2').val(null).trigger('change'); 
-        };
-
-        self.removeHost = function(host) {
-            self.hosts.remove(host);
-            self.updateHost();
-        };
-
-        self.updateHost = function() {
-            if (self.hosts() && self.hosts().length > 0) {
-                var hosts = [];
-                $.each(self.hosts(), function(i, host) {
-                    hosts.push(host.hostname);
-                });
-            }  else {
-                var hosts = []
-            }
-            data = {
-                'deployment': {'hosts': hosts}
-            };
-            self.putToDeployment(data);
-        };
-
+        
         self.addMappedPort = function() {
             if (self.mappedPortToAdd() != "") {
                 self.mappedPorts.push(this.mappedPortToAdd()); // Adds the item. Writing to the "items" observableArray causes any associated UI to update.
@@ -386,15 +368,36 @@ define([
             self.putToDeployment(data);
         };
 
-        self.addLinks = function() {
-            if (self.linkToAdd() !== "") {
-                self.links.push(self.linkToAdd());
-                self.linkToAdd("");
-            }
+        self.removeHost = function(host) {
+            self.hosts.remove(host);
+            self.updateHosts();
+        };
+        
+        self.removeLink = function(link) {
+            self.links.remove(link);
             self.updateLinks();
-            $('#inputLinkedApp').val(null).trigger('change');
         };
 
+        self.removeVolume = function(volume) {
+            self.volumes.remove(volume);
+            self.updateVolumes();
+        };
+
+        self.updateHosts = function() {
+            if (self.hosts() && self.hosts().length > 0) {
+                var hosts = [];
+                $.each(self.hosts(), function(i, host) {
+                    hosts.push(host.hostname);
+                });
+            }  else {
+                var hosts = []
+            }
+            data = {
+                'deployment': {'hosts': hosts}
+            };
+            self.putToDeployment(data);
+        };
+        
         self.updateLinks = function() {
             if (self.links() && self.links().length > 0) {
                 var the_links = [];
@@ -415,19 +418,6 @@ define([
             };
             self.putToDeployment(data);
         }
-
-        self.removeLink = function(link) {
-            self.links.remove(link);
-            self.updateLinks();
-        };
-
-        self.addVolumes = function() {
-            if (self.volumeToAdd() != "") {
-                self.volumes.push(this.volumeToAdd());
-                self.volumeToAdd("");
-            }
-            $('#inputLinkedVolume').val(null).trigger('change');
-        };
         
         self.updateVolumes = function() {
             var data = {};
@@ -449,11 +439,7 @@ define([
                 'deployment': {"volumes": the_volumes}
             };
             self.putToDeployment(data);
-            };
-
-        self.removeVolume = function(volume) {
-                self.volumes.remove(volume);
-        };
+            };        
 
          self.addEnvVar = function() {
             if (self.envVarToAdd() != "") {
@@ -536,7 +522,6 @@ define([
                     self.hosts(data.hosts);
                     self.id(data.id);
                     
-                    console.log(data);
                     self.containers.removeAll();
                     $.each(data.containers, function(i, container) {
                         self.containers.push(self.new_container(container));
@@ -577,22 +562,7 @@ define([
                 }
             });
         };
-        
-        self.updateHosts = function(callback) {
-            data = {
-                'hosts': self.hosts()
-            };
-            $.ajax({
-                type: 'PUT',
-                data: data,
-                url: self.hostsPath()
-            }).done(function(json) {
-                callback(json);
-            }).fail(function() {
-                console.log("failed updating deployment hosts");
-            });
-        };
-        
+                
         self.create = function() {
             data = {
                 'deployment': self.serialize()
