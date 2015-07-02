@@ -1,140 +1,276 @@
-
-
-<div class="row">
-  <h2 class="sub-header col-md-4" data-bind="text: appName"></h2>
-  <div class="col-md-offset-6 col-md-2">
-    <button id="launchButton" data-bind="click: launch" class="btn btn-primary">Launch Deployment</button>
-  </div>
-</div>
-
-<div class="row">
-  <strong class="col-md-2">Image: </strong>
-  <span class="col-md-2" data-bind="text: imageTag"></span>
-</div>
-<div class="row">
-  <strong class="col-md-2">Environment: </strong>
-  <span class="col-md-2" data-bind="text: environment"></span>
-</div>
-<div class="row" id="statusEndpointField">
-  <strong class="col-md-2">Status Endpoint: </strong>
-  <span  class="col-md-2" data-bind="editable: statusEndpoint, editableOptions: {url: updateDeployment, mode: 'inline'}"></span>
-</div>
-  <div id="hideStatusEndpoint" class="collapse alert alert-info"> Changing status endpoint requires manual re-deployment. </div>
-<div id="statusPortField" class="row">
-  <strong class="col-md-2">Status Port: </strong>
-  <span class="col-md-2" data-bind="editable: statusPort, editableOptions: {url: updateDeployment, mode:'inline'}"></span>
-</div>
-  <div id="hideStatusPort" class="collapse alert alert-info"> Changing status port requires manual re-deployment. </div>
-<p>
-<strong>Mapped Ports: </strong>
-  <form data-bind="submit: addMappedPort">
-    <input id="mappedPortsField" data-bind='value: mappedPortToAdd, valueUpdate: "afterkeydown"' />
-    <button type="submit" class="btn btn-primary" data-bind="enable: mappedPortToAdd().length > 0">Add</button>
-  </form>
-  <div id="hideMappedPorts" class="collapse alert alert-info"> Adding mapped ports requires manual re-deployment. 
-  </div>
-  <ul class="list-group" data-bind="foreach: mappedPorts">
-    <li class="list-group-item row"><p class="col-md-2" data-bind="text: $data"></p><a class="col-md-2" href="#" data-bind="click: $parent.removeMappedPort">Remove</a></li>
-  </ul>
-</p> 
-<p>
-  <strong>Mapped Volumes: </strong>
-    <form data-bind="submit: addMappedVolume">
-      <input id="mappedVolumesField" data-bind='value: mappedVolumeToAdd, valueUpdate: "afterkeydown"' />
-      <button type="submit" class="btn btn-primary" data-bind="enable: mappedVolumeToAdd().length > 0">Add</button>
-    </form>
-    <div class="collapse alert alert-info" id="hideMappedVolumes"> Adding mapped volumes requires manual re-deployment. </div>
-  <ul class="list-group" data-bind="foreach: mappedVolumes">
-    <li class="list-group-item row"><p class="col-md-2" data-bind="text: $data"></p><a class="col-md-2"href="#" data-bind="click: $parent.removeMappedVolume ">Remove</a></li>
+<div class="page-header">
+  <div class="row">
+    <div class="col-md-6">
+      <h1 class="row">
+        <strong class="col-md-2" data-bind="text: appName"></strong>
+      </h1>
       
-  </ul>
-</p>
-<p>
-  <strong>Environment Variables: </strong>
-<p>
-   <form data-bind="submit: addEnvVar">
-      <input id="envVarField" data-bind='value: envVarToAdd, valueUpdate: "afterkeydown"' />
-      <button type="submit" class="btn btn-primary" data-bind="enable: envVarToAdd().length > 0">Add</button>
-  </form>
-  <div class="collapse alert alert-info" id='hideEnvVars'> Adding environment variables requires manual re-deployment. </div> 
-  <ul class="list-group" data-bind="foreach: envVarList">
-    <li class="list-group-item row"><p class="col-md-2" data-bind="text: name+'='+value"></p><a class="col-md-2" href="#" data-bind="click: $parent.removeEnvVar ">Remove</a></li>
-  </ul>
-</p>
-<br>
-<p>
-  <strong>Configured Hosts: </strong>
-  <form data-bind="submit: addHost">
-    <select style="width: 100%" multiple="true" required="true" class="form-control" id="inputHosts2"></select> 
-  <button id="hostsButton"type="submit" class="btn btn-primary">Add</button>
-  </form> 
-    <div class="collapse alert alert-info" id="hideConfigHosts"> Adding hosts requires manual re-deployment. </div><br>
-  <ul class="list-group" data-bind="foreach: hosts">
-    <li class="list-group-item row"><a class="col-md-2" data-bind="attr: {href: '#hosts/'+hostname}, text: alias"></a><a class="col-md-2" href="#" data-bind="click: $parent.removeHost">Remove</a></li>
-  </ul>
-</p>
+      <div class="row">
+        <strong class="col-md-2">Image: </strong>
+        <span class="col-md-2" data-bind="text: imageTag"></span>
+        <button id="launchButton" data-bind="click: launch" class="btn btn-sm btn-primary">Launch Deployment</button>
+      </div>
 
-<!--<p data-bind="visible: links().length"> -->
-<p>
-<br>
-  <strong>Linked Apps: </strong>
-  <form data-bind="submit: addLinks">
-  <select style="width: 100%" require="true" class="form-control" id="inputLinkedApp"></select> 
-  <button id="linkedAppButton" type="submit" class="btn btn-primary" id="linkedAppButton">Add</button>
-</form>
-<div class="collapse alert alert-info" id="hideLinkedApps"> Adding linked apps requires manual re-deployment. </div><br>
-  <ul data-bind="foreach: links">
-    <li class="list-group-item row"><p class="col-md-3" data-bind="text: $data"></p><a class="col-md-2" href="#" data-bind="click: $parent.removeLink">Remove</a></li>
-  </ul>
-</p>
-
-
-<!--<p data-bind="visible: volumes().length"> -->
-<p>
-<br>
-  <strong>Linked Volumes: </strong>
-<form data-bind="submit: addVolumes">
-  <select style="width: 100%" require="true" class="form-control" id="inputLinkedVolume"></select> 
-  <button id="linkedVolumesButton" type="submit" class="btn btn-primary" id="linkedVolumeButton">Add</button>
-</form>
-  <div class="collapse alert alert-info" id="hideLinkedVolumes"> Adding linked volumes requires manual re-deployment. </div><br>
-  <ul data-bind="foreach: volumes">
-    <li class="list-group-item row"><p class="col-md-3" data-bind="text: $data"></p><a href="#" data-bind="click: $parent.removeVolume">Remove</a>
-</li>
-</ul>
-</p>
-
-<br>
-<div class="table-responsive">
-  <h4 class="sub-header">Containers</h4>
-  <table id="deployment-containers" class="table table-striped">
-    <thead>
-      <tr>
-        <th>Container</th>
-        <th>Host</th>
-        <th>Command</th>
-        <th>App Status</th>
-        <th>Container State</th>
-      </tr>
-    </thead>
-    <tbody data-bind="foreach: containers">
-      <tr>
-        <td><samp data-bind="text: id"></samp></td>
-        <td data-bind="text: host"></td>
-        <td><samp data-bind="text: command"></samp></td>
-        <td><h5 data-bind="text: status, css: {'text-success': status() === 'up', 'text-danger': status() === 'down'}"></h5></td>
-        <td><h5 data-bind="text: state, css: {'text-success': state() === 'running'}"></h5></td>
-      </tr>
-    </tbody>
-  </table>
+      <div class="row">
+        <strong class="col-md-2">Environment: </strong>
+        <span class="col-md-2" data-bind="text: environment"></span>
+      </div>
+    </div>    
+  </div>
 </div>
+
+<div class="panel panel-default app-status-panel">
+  <div class="panel-heading">
+    <h3 class="panel-title">App Status</h3>
+  </div>
+
+  <div class="panel-body">
+    <div class="row" id="statusEndpointField">
+      <strong class="col-md-2">Endpoint: </strong>
+      <span  class="col-md-2" data-bind="editable: statusEndpoint, editableOptions: {url: updateDeployment, mode: 'inline'}"></span>      
+    </div>
+    
+    <div class="row" id="statusPortField">
+      <strong class="col-md-2">Port: </strong>
+      <span class="col-md-2" data-bind="editable: statusPort, editableOptions: {url: updateDeployment, mode:'inline'}"></span>
+    </div>
+  </div>
+</div>
+
+<div class="panel panel-default container-config-panel">
+  <div class="panel-heading">
+    <h3 class="panel-title">Container Configuration</h3>
+  </div>
+
+  <div class="panel-body">    
+    <div class="row">
+      
+      <div class="col-md-12">
+        <p>
+          <strong>Mapped Ports: </strong>
+          <span style="opacity: 0.4" class="glyphicon glyphicon-pencil" data-bind="click: editMappedPorts"></span>
+          <div class="alert alert-info" data-bind="visible: editingMappedPorts">
+            Requires a redeploy before changes will take effect on the containers.
+          </div>
+        </p>
+        <div class="row" data-bind="visible: editingMappedPorts">
+          <div class="col-md-4">
+            <div class="input-group">
+              <input type="text" class="form-control" id="mappedPortsField" data-bind="value: mappedPortToAdd, valueUpdate: 'afterkeydown'"/>
+              <span class="input-group-btn">
+                <button class="btn btn-primary" data-bind="enable: mappedPortToAdd().length, click: addMappedPort">Add</button>
+              </span>              
+            </div>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col-md-4">
+            <div class="list-group" data-bind="foreach: mappedPorts">
+              <div class="list-group-item">
+                <span data-bind="text: $data"></span>
+                <span style="cursor: pointer; opacity: 0.7" class="glyphicon glyphicon-remove pull-right" data-bind="click: $parent.removeMappedPort"></span>
+              </div>
+            </div>
+          </div>
+        </div>        
+      </div>
+
+      <div class="col-md-12">
+        <p>
+          <strong>Mapped Volumes: </strong>
+          <span style="opacity: 0.4" class="glyphicon glyphicon-pencil" data-bind="click: editMappedVolumes"></span>
+          <div class="alert alert-info" data-bind="visible: editingMappedVolumes">
+            Requires a redeploy before changes will take effect on the containers.
+          </div>
+        </p>
+        <div class="row" data-bind="visible: editingMappedVolumes">
+          <div class="col-md-4">
+            <div class="input-group">
+              <input type="text" class="form-control" id="mappedVolumesField" data-bind="value: mappedVolumeToAdd, valueUpdate: 'afterkeydown'"/>
+              <span class="input-group-btn">
+                <button class="btn btn-primary" data-bind="enable: mappedVolumeToAdd().length, click: addMappedVolume">Add</button>
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col-md-4">
+            <div class="list-group" data-bind="foreach: mappedVolumes">
+              <div class="list-group-item">
+                <span data-bind="text: $data"></span>
+                <span style="cursor: pointer; opacity: 0.7" class="glyphicon glyphicon-remove pull-right" data-bind="click: $parent.removeMappedVolume"></span>
+              </div>
+            </div>
+          </div>
+        </div>        
+      </div>
+
+      <div class="col-md-12">
+        <p>
+          <strong>Environment Variables: </strong>
+          <span style="opacity: 0.4" class="glyphicon glyphicon-pencil" data-bind="click: editEnvVars"></span>
+          <div class="alert alert-info" data-bind="visible: editingEnvVars">
+            Requires a redeploy before changes will take effect on the containers.
+          </div>
+        </p>
+        <div class="row" data-bind="visible: editingEnvVars">
+          <div class="col-md-4">
+            <div class="input-group">
+              <input type="text" class="form-control" id="envVarField" data-bind="value: envVarToAdd, valueUpdate: 'afterkeydown'"/>
+              <span class="input-group-btn">
+                <button class="btn btn-primary" data-bind="enable: envVarToAdd().length, click: addEnvVar">Add</button>
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col-md-4">
+            <div class="list-group" data-bind="foreach: envVarList">
+              <div class="list-group-item">
+                <span data-bind="text: name+'='+value"></span>
+                <span style="cursor: pointer; opacity: 0.7" class="glyphicon glyphicon-remove pull-right" data-bind="click: $parent.removeEnvVar"></span>
+              </div>
+            </div>
+          </div>
+        </div>        
+      </div>
+
+      <div class="col-md-12">
+        <p>
+          <strong>Linked Apps: </strong>
+          <span style="opacity: 0.4" class="glyphicon glyphicon-pencil" data-bind="click: editLinks"></span>
+          <div class="alert alert-info" data-bind="visible: editingLinks">
+            Requires a redeploy before changes will take effect on the containers.
+          </div>
+        </p>
+        <div class="row" data-bind="visible: editingLinks">
+          <div class="col-md-4">
+            <select style="width: 100%" type="text" class="form-control" id="inputLinkedApp"></select>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col-md-4">
+            <div class="list-group" data-bind="foreach: links">
+              <div class="list-group-item">
+                <span data-bind="text: $data"></span>
+                <span style="cursor: pointer; opacity: 0.7" class="glyphicon glyphicon-remove pull-right" data-bind="click: $parent.removeLink"></span>
+              </div>
+            </div>
+          </div>
+        </div>        
+      </div>
+
+      <div class="col-md-12">
+        <p>
+          <strong>Linked Volumes: </strong>
+          <span style="opacity: 0.4" class="glyphicon glyphicon-pencil" data-bind="click: editVolumes"></span>
+          <div class="alert alert-info" data-bind="visible: editingVolumes">
+            Requires a redeploy before changes will take effect on the containers.
+          </div>
+        </p>
+        <div class="row" data-bind="visible: editingVolumes">
+          <div class="col-md-4">
+            <select style="width: 100%" type="text" class="form-control" id="inputLinkedVolume"></select>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col-md-4">
+            <div class="list-group" data-bind="foreach: volumes">
+              <div class="list-group-item">
+                <span data-bind="text: $data"></span>
+                <span style="cursor: pointer; opacity: 0.7" class="glyphicon glyphicon-remove pull-right" data-bind="click: $parent.removeVolume"></span>
+              </div>
+            </div>
+          </div>
+        </div>        
+      </div>
+      
+    </div>  <!-- end row -->
+  </div> <!-- end panel body -->
+  
+</div> <!-- end container config panel -->
+
+
+<div class="panel panel-default host-panel">
+  <div class="panel-heading">
+    <h3 class="panel-title">Deployment Hosts</h3>
+  </div>
+
+  <div class="panel-body">    
+    <div class="row">
+      
+      <div class="col-md-12">
+        <p>
+          <strong>Configured: </strong>
+          <span style="opacity: 0.4" class="glyphicon glyphicon-pencil" data-bind="click: editHosts"></span>
+        </p>
+        <div class="row" data-bind="visible: editingHosts">
+          <div class="col-md-4">
+            <select style="width: 100%" type="text" class="form-control" id="inputDeploymentHosts"></select>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col-md-4">
+            <div class="list-group" data-bind="foreach: hosts">
+              <div class="list-group-item">
+                <a data-bind="attr: {href: '#hosts/'+hostname}, text: alias"></a>
+                <span style="cursor: pointer; opacity: 0.7" class="glyphicon glyphicon-remove pull-right" data-bind="click: $parent.removeHost"></span>
+              </div>
+            </div>
+          </div>
+        </div>        
+      </div>
+      
+    </div>
+  </div>
+</div> <!-- end host panel -->
+
+<div class="panel panel-default container-panel">
+  <div class="panel-heading">
+    <h3 class="panel-title">Containers</h3>
+  </div>
+
+  <div class="panel-body">    
+    <div class="row">
+      
+      <div class="table-responsive">
+        <table id="deployment-containers" class="table table-striped">
+          <thead>
+            <tr>
+              <th>Container</th>
+              <th>Host</th>
+              <th>Command</th>
+              <th>App Status</th>
+              <th>Container State</th>
+            </tr>
+          </thead>
+          <tbody data-bind="foreach: containers">
+            <tr>
+              <td><samp data-bind="text: id"></samp></td>
+              <td data-bind="text: host"></td>
+              <td><samp data-bind="text: command"></samp></td>
+              <td><h5 data-bind="text: status, css: {'text-success': status() === 'up', 'text-danger': status() === 'down'}"></h5></td>
+              <td><h5 data-bind="text: state, css: {'text-success': state() === 'running'}"></h5></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+    </div>
+  </div>
+</div> <!-- end container panel -->
+
+
 
 <div class="row">
   <br>
   <div class="col-md-2">
     <button data-bind="click: deleteDeployment" class="btn btn-danger">Delete Deployment</button>
   </div>
- <!-- <div class="col-md-2">
-    <button data-bind="click: function(data, event) {updateDeployment($root, data, event)}" class="btn btn-primary">Update Deployment</button>
-  </div>   -->
 </div>
