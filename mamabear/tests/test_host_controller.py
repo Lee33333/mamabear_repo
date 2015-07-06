@@ -1,6 +1,6 @@
 import unittest
 
-#import boto
+import boto
 import cherrypy
 #what is ConfigParser
 import ConfigParser
