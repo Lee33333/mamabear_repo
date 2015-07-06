@@ -2,7 +2,7 @@
   <div class="row">
     <div class="col-md-6">
       <h1 class="row">
-        <strong class="col-md-2" data-bind="text: appName"></strong>
+        <strong class="col-md-12" data-bind="text: appName"></strong>
       </h1>
       
       <div class="row">
@@ -252,8 +252,8 @@
           </thead>
           <tbody data-bind="foreach: containers">
             <tr>
-              <td><samp data-bind="text: id"></samp></td>
-              <td data-bind="text: host"></td>
+              <td><samp><a data-bind="attr: {href: '#containers/'+id()}, text: id"></a></samp></td>
+              <td><a data-bind="attr: {href: '#hosts/'+host()}, text: host"></a></td>
               <td><samp data-bind="text: command"></samp></td>
               <td><h5 data-bind="text: status, css: {'text-success': status() === 'up', 'text-danger': status() === 'down'}"></h5></td>
               <td><h5 data-bind="text: state, css: {'text-success': state() === 'running'}"></h5></td>

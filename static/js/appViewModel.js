@@ -15,6 +15,7 @@ define([
             self.hostsPath = '../mamabear/v1/host';
             self.appsPath = '../mamabear/v1/app';
             self.imagesPath = '../mamabear/v1/image';
+            self.containersPath = '../mamabear/v1/container';
             self.deploymentsPath = '../mamabear/v1/deployment';
 
             self.app = ko.observable(new App());
@@ -24,6 +25,7 @@ define([
             
             self.hostTable = ko.observable();
             self.appsTable = ko.observable();
+            self.containersTable = ko.observable();
             self.deploymentsTable = ko.observable();
                                     
             self.bindSelects = function(page) {
@@ -139,10 +141,69 @@ define([
                 }
             }
 
+            self.redrawContainersTable = function(page) {
+                if (self.containersTable()) {
+                    self.containersTable().draw();
+                }
+            }
+
             self.redrawDeploymentsTable = function(page) {
                 if (self.deploymentsTable()) {
                     self.deploymentsTable().draw();
                 }
+            }
+
+            self.bindContainers = function(page) {
+                self.containersTable($('#containers_table').DataTable({
+                    'processing': true,
+                    'serverSide': true,
+                    'ajax': function(data, callback, settings) {
+                        params = {
+                            'limit': data.length,
+                            'offset': data.start,
+                            'order': data.order[0].dir
+                        }
+                        if (data.search && data.search.value !== '') {
+                            var query = data.search.value;
+                            params['app_name'] = query;
+                            if (query.includes(':')) {
+                                var splits = query.split(':');
+                                params['app_name'] = splits[0];
+                                params['image_tag'] = splits[1];
+                            } 
+                        }                        
+                        $.ajax({
+                            type: 'GET',
+                            data: params,
+                            url: self.containersPath
+                        }).done(function(json) {
+                            callback({'draw': data.draw, 'data':json.hits, 'recordsTotal': json.total, 'recordsFiltered': json.total});
+                        }).fail(function() {
+                            console.log("Failed getting containers");
+                        })
+                    },
+                    'columns': [
+                        {'data': 'deployment'},
+                        {'data': 'host'},
+                        {'data': 'id'},
+                        {'data': 'status'},
+                        {'data': 'state'},
+                        {'data': 'started_at'}
+                    ],
+                    'columnDefs': [
+                        {
+                            'targets':0, 'render': function(data,type,row) {
+                                if (data) {
+                                    return '<a href="#deployments/'+data.replace(':', '/')+'">'+data+'</a>';
+                                } else {
+                                    return "undefined";
+                                }
+                            }                            
+                        },
+                        {'targets':1, 'render': function(data,type,row) {return '<a href="#hosts/'+data+'">'+data+'</a>';}},
+                        {'targets':2, 'render': function(data,type,row) {return '<a href="#containers/'+data+'">'+data+'</a>';}}
+                    ]
+                }));
             }
             
             self.bindDeployments = function(page) {

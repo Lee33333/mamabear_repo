@@ -231,8 +231,12 @@ class Container(Base):
             'command': self.command,
             'started_at': self.started_at.strftime('%Y-%m-%d %H:%M:%S'),
             'finished_at': self.finished_at.strftime('%Y-%m-%d %H:%M:%S'),
-            'state': self.state
+            'state': self.state,
         }
+        if self.deployment:
+            result['deployment'] = '{}:{}/{}'.format(
+                self.deployment.app_name, self.deployment.image_tag,
+                self.deployment.environment)
         if self.image:
             result['image'] = self.image.encode()
         return result

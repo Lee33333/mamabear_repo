@@ -248,7 +248,7 @@ class ContainerController(object):
     
     @cherrypy.tools.json_out()
     def list_containers(self, app_name=None, image_tag=None, host_name=None, status=None, container_state=None,
-                        command=None, order='asc', sort_field='started_at', limit=10, offset=0):
+                        command=None, order='desc', sort_field='started_at', limit=10, offset=0):
         return {
             'hits': Container.list(cherrypy.request.db, app_name=app_name, image_tag=image_tag, host_name=host_name,
                                    status=status, container_state=container_state, command=command, order=order,

@@ -1,0 +1,58 @@
+<div class="page-header">
+  <div class="row">
+    <div class="col-md-6">
+      
+      <div class="row">
+        <strong class="col-md-2">Container: </strong>
+        <span class="col-md-10"><samp data-bind="text: id"></samp></span>        
+      </div>      
+      
+      <div class="row">
+        <strong class="col-md-2">Deployment: </strong>
+        <span class="col-md-4"><a data-bind="attr: {href: deploymentPath}, text: deployment"></a></span>        
+      </div>
+
+      <div class="row">
+        <strong class="col-md-2">Host: </strong>
+        <span class="col-md-4"><a data-bind="attr: {href: '#hosts/'+host()}, text: host"></a></span>
+      </div>
+      
+    </div>    
+  </div>
+</div>
+
+<div class="panel panel-default app-status-panel">
+  <div class="panel-heading">
+    <h3 class="panel-title">Status</h3>
+  </div>
+
+  <div class="panel-body">
+    <div class="row">
+      <strong class="col-md-2">Container State: </strong>
+      <span class="col-md-2" data-bind="text: state"></span>      
+    </div>
+    
+    <div class="row">
+      <strong class="col-md-2">App Status: </strong>
+      <span class="col-md-2" data-bind="text: status"></span>
+    </div>
+  </div>
+</div>
+
+<div class="panel panel-default container-details-panel">
+  <div class="panel-heading">
+    <h3 class="panel-title">Container Details</h3>
+  </div>
+
+  <div class="panel-body">    
+    <div class="row">
+      <strong class="col-md-2">Command: </strong>
+      <span class="col-md-10"><samp data-bind="text: command"></samp></span>
+    </div>
+
+    <div class="row">
+      <strong class="col-md-2">Started At: </strong>
+      <span class="col-md-10" data-bind="text: startedAt"></span>
+    </div>
+  </div>
+</div>

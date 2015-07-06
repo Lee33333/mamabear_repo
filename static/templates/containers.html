@@ -1,0 +1,18 @@
+<div data-bind="page: {id: 'all'}">
+  <h1 class="page-header">Containers</h1>
+  <table id="containers_table" class="display" cellspacing="0" width="100%">
+    <thead>
+      <tr>
+        <th>Deployment</th>
+        <th>Host</th>
+        <th>Container</th>
+        <th>App Status</th>
+        <th>Container State</th>
+        <th>Started At</th>
+      </tr>
+    </thead>
+  </table>
+</div>
+<div data-bind="page: {id: '?', beforeShow: setPage}">  
+  <div data-bind="module: {name: 'container', template: 'containerDetail', data: page}"></div>
+</div>
