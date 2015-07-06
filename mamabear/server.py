@@ -29,6 +29,7 @@ def get_app():
     d.connect(name='mamabear-apps', route="/mamabear", controller=AppController)
     d.connect(name='mamabear-deployments', route='/mamabear', controller=DeploymentController)
     d.connect(name='mamabear-images', route='/mamabear', controller=ImageController)
+    d.connect(name='mamabear-containers', route='/mamabear', controller=ContainerController)
     
     with d.mapper.submapper(path_prefix='/mamabear/v1', controller='mamabear-hosts') as m:
         m.connect('hosts', '/host', action='list_hosts', conditions=dict(method=['GET']))
@@ -37,6 +38,10 @@ def get_app():
 
     with d.mapper.submapper(path_prefix='/mamabear/v1', controller='mamabear-images') as m:
         m.connect('images', '/image', action='list_images', conditions=dict(method=['GET']))
+
+    with d.mapper.submapper(path_prefix='/mamabear/v1', controller='mamabear-containers') as m:
+        m.connect('containers', '/container', action='list_containers', conditions=dict(method=['GET']))
+        m.connect('container_get', '/container/{container_id}', action='get_container', conditions=dict(method=['GET']))
 
     with d.mapper.submapper(path_prefix='/mamabear/v1', controller='mamabear-deployments') as m:
         m.connect('deployments_all', '/deployment', action='list_deployments', conditions=dict(method=['GET']))

@@ -171,7 +171,50 @@ class Container(Base):
 
     VALID_STATUS = ['up', 'down']
     VALID_STATES = ['running', 'stopped', 'paused', 'restarting', 'dead']
+
     
+    @staticmethod    
+    def list_query(session, app_name=None, image_tag=None, host_name=None,
+                   status=None, container_state=None, command=None):
+        q = session.query(Container)
+        if app_name:            
+            q = q.join(Container.image).filter(Image.app_name.like('%'+app_name+'%'))
+        if image_tag:
+            q = q.join(Container.image).filter(Image.tag.like('%'+image_tag+'%'))
+        if host_name:
+            q = q.join(Container.host).filter(Host.hostname.like('%'+host_name+'%'))
+        if status:
+            q = q.filter(Container.status == status)
+        if container_state:
+            q = q.filter(Container.state == container_state)
+        if command:
+            q = q.filter(Container.command.like('%'+command+'%'))
+        return q
+
+    @staticmethod
+    def count(session, app_name=None, image_tag=None, host_name=None,
+              status=None, container_state=None, command=None):
+        q = Container.list_query(session, app_name=app_name, image_tag=image_tag,
+                                 host_name=host_name, status=status,
+                                 container_state=container_state, command=command)
+        return q.count()
+
+    @staticmethod
+    def list(session, app_name=None, image_tag=None, host_name=None,
+             status=None, container_state=None, command=None, order='asc',
+             sort_field='started_at', limit=10, offset=0):
+        q = Container.list_query(session, app_name=app_name, image_tag=image_tag,
+                                 host_name=host_name, status=status,
+                                 container_state=container_state, command=command)
+        if order == 'asc':
+            q = q.order_by(asc(getattr(Container, sort_field)))
+        else:
+            q = q.order_by(desc(getattr(Container, sort_field)))
+            
+        q = q.limit(limit).offset(offset)
+
+        return [r.encode() for r in q.all()]
+        
     @staticmethod
     def get_by_ref(session, image_ref):
         return session.query(Container).filter(Container.image_ref == image_ref).all()

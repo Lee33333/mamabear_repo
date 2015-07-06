@@ -235,3 +235,24 @@ class ImageController(object):
                                sort_field=sort_field, limit=limit, offset=offset),
             'total': Image.count(cherrypy.request.db, app_name=app_name, image_tag=image_tag)
         }
+
+class ContainerController(object):
+
+    @cherrypy.tools.json_out()
+    def get_container(self, container_id):
+        container = Container.get(cherrypy.request.db, container_id)
+        if container:
+            return container.encode()
+        cherrypy.response.status = 404
+        return {'error': 'container with id: {} not found'.format(container_id)}
+    
+    @cherrypy.tools.json_out()
+    def list_containers(self, app_name=None, image_tag=None, host_name=None, status=None, container_state=None,
+                        command=None, order='asc', sort_field='started_at', limit=10, offset=0):
+        return {
+            'hits': Container.list(cherrypy.request.db, app_name=app_name, image_tag=image_tag, host_name=host_name,
+                                   status=status, container_state=container_state, command=command, order=order,
+                                   sort_field=sort_field, limit=limit, offset=offset),
+            'total': Container.count(cherrypy.request.db, app_name=app_name, image_tag=image_tag, host_name=host_name,
+                                     status=status, container_state=container_state, command=command)
+        }
