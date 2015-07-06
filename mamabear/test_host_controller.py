@@ -1,5 +1,3 @@
-import unittest
-
 import boto
 import cherrypy
 #what is ConfigParser
@@ -9,10 +7,8 @@ from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
-#import everything from model
 from mamabear.model import *
-from mamabear.worker import *
-#import all the controllers from controllers.py
+import mamabear.worker
 from mamabear.controllers import HostController, ImageController, DeploymentController, AppController
 
 def get_session(engine):    
