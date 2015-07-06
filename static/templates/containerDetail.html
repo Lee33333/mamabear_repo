@@ -56,3 +56,16 @@
     </div>
   </div>
 </div>
+
+<div class="panel panel-default container-logs-panel">
+  <div class="panel-heading">
+    <strong class="panel-title">Container Logs</strong>
+    <span style="cursor: pointer" class="glyphicon glyphicon-refresh" data-bind="click: refreshLogs"></span>
+  </div>
+
+  <div class="panel-body">    
+    <div class="row" data-bind="visible: logs">
+      <pre data-bind="text: logs"></pre>
+    </div>
+  </div>
+</div>

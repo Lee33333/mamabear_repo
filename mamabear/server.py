@@ -42,6 +42,7 @@ def get_app():
     with d.mapper.submapper(path_prefix='/mamabear/v1', controller='mamabear-containers') as m:
         m.connect('containers', '/container', action='list_containers', conditions=dict(method=['GET']))
         m.connect('container_get', '/container/{container_id}', action='get_container', conditions=dict(method=['GET']))
+        m.connect('container_get_logs', '/container/{container_id}/logs', action='get_container_logs', conditions=dict(method=['GET']))
 
     with d.mapper.submapper(path_prefix='/mamabear/v1', controller='mamabear-deployments') as m:
         m.connect('deployments_all', '/deployment', action='list_deployments', conditions=dict(method=['GET']))
@@ -93,6 +94,7 @@ def start(config):
     AppController.worker = Worker(config)
     HostController.worker = Worker(config)
     DeploymentController.worker = Worker(config)
+    ContainerController.worker = Worker(config)
     
     connection_string = "mysql://%s:%s@%s/%s" % (
         config.get('mysql', 'user'),

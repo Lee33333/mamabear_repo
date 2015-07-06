@@ -239,6 +239,16 @@ class ImageController(object):
 class ContainerController(object):
 
     @cherrypy.tools.json_out()
+    def get_container_logs(self, container_id, stderr=True, stdout=False, limit=100):
+        container = Container.get(cherrypy.request.db, container_id)
+        if container:
+            logs = self.worker.get_container_logs(container, self.worker._config, limit=limit)
+            return {'container':container_id, 'logs':logs}
+            
+        cherrypy.response.status = 404
+        return {'error': 'container with id: {} not found'.format(container_id)}
+        
+    @cherrypy.tools.json_out()
     def get_container(self, container_id):
         container = Container.get(cherrypy.request.db, container_id)
         if container:

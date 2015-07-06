@@ -202,7 +202,11 @@ class Worker(object):
         for host in db.query(Host).all():
             logging.info("Updating containers for host: {}".format(host.hostname))
             self.update_host_containers(db, host, config)
-                    
+
+    def get_container_logs(self, container, config, stderr=True, stdout=False, limit=100):
+        wrapper = DockerWrapper(container.host.hostname, container.host.port, config)
+        return wrapper.logs(container.id, stdout=stdout, stderr=stderr, tail=limit)
+        
     def update_all(self):
         try:
             db = self.get_session(self.get_engine(self._config))

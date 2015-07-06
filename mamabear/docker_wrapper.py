@@ -89,7 +89,7 @@ class DockerWrapper(object):
                 last_exception = e
         else:
             raise last_exception
-            
+        
     def ps(self, **kwargs):
         return self._client_request('containers', **kwargs)        
 

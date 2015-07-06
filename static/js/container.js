@@ -13,11 +13,16 @@ define([
         self.state = ko.observable();
         self.startedAt = ko.observable();
         self.deployment = ko.observable();
+        self.logs = ko.observable('');
         
         self.containerPath = ko.computed(function() {
             return '../mamabear/v1/container/'+self.id();
         });
 
+        self.logPath = ko.computed(function() {
+            return '../mamabear/v1/container/'+self.id()+'/logs';
+        });
+        
         self.deploymentPath = ko.computed(function() {
             if (self.deployment()) {
                 return '#deployments/'+self.deployment().replace(':', '/');
@@ -38,6 +43,21 @@ define([
             }
             return image;
         };
+
+        self.refreshLogs = function() {
+            self.getLogs(function() {});
+        };
+        
+        self.getLogs = function(callback) {
+            $.getJSON(self.logPath(), function (data) {
+                if (data) {
+                    self.logs(data.logs);
+                    callback(self);
+                } else {
+                    callback(self);
+                }
+            });
+        };
         
         self.get = function(callback) {
             $.getJSON(self.containerPath(), function (data) {
@@ -49,7 +69,7 @@ define([
                     self.command(data.command);
                     self.startedAt(data.started_at);
                     self.deployment(data.deployment);
-                    callback(self);
+                    self.getLogs(callback);
                 } else {
                     callback(self);
                 }
