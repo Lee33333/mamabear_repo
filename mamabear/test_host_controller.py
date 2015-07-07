@@ -8,7 +8,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 from mamabear.model import *
-import mamabear.worker
+from mamabear.worker import Worker
+import mamabear.server
+import mamabear.docker_wrapper
 from mamabear.controllers import HostController, ImageController, DeploymentController, AppController
 
 def get_session(engine):    
@@ -42,6 +44,14 @@ class BaseControllerTest(object):
         cherrypy.request.db = self.db
         self.db.add_all(self.data())
 
+        hostname = '127.0.0.1'
+        alias = 'Daria'
+        port = 2376
+
+        host = Host(hostname=hostname, alias=alias, status='up', port=port)             
+        self.db.add(host)
+        self.db.commit()
+
     def teardown(self):
         self.db.remove()
 
@@ -50,17 +60,12 @@ class TestHosts(BaseControllerTest):
     def _controller(self):
         return HostController()
 
-    def test_add_host(self):
-        cherrypy.request.json = {
-            'host': {
-                'hostname': '127.0.0.1',
-                'alias': 'Daria',
-                'port': 2376
-            }
-        }
-        result = self.controller.add_host()
-        host = self.controller.get_host('127.0.0.1')
-        assert host['status'] == 'up'
+    def test_get_host(self):
 
+        host = self.controller.get_host('127.0.0.1')
+        assert host['port'] == 2376
+        assert host['hostname'] == u'127.0.0.1'
+        assert host['status'] == u'up'
+        assert host['alias'] == u'Daria'
 
 

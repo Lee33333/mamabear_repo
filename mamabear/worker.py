@@ -3,7 +3,6 @@ import logging
 import requests
 import threading
 from dateutil import tz
-from dateutil import parser
 from datetime import datetime
 from mamabear.model import *
 from mamabear.docker_wrapper import DockerWrapper
