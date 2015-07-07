@@ -44,14 +44,6 @@ class BaseControllerTest(object):
         cherrypy.request.db = self.db
         self.db.add_all(self.data())
 
-        hostname = '127.0.0.1'
-        alias = 'Daria'
-        port = 2376
-
-        host = Host(hostname=hostname, alias=alias, status='up', port=port)             
-        self.db.add(host)
-        self.db.commit()
-
     def teardown(self):
         self.db.remove()
 
@@ -60,12 +52,34 @@ class TestHosts(BaseControllerTest):
     def _controller(self):
         return HostController()
 
-    def test_get_host(self):
+    def test_delete_host(self):
+        hostname = '127.0.0.1'
+        alias = 'Daria'
+        port = 2376
 
-        host = self.controller.get_host('127.0.0.1')
-        assert host['port'] == 2376
-        assert host['hostname'] == u'127.0.0.1'
+        host = Host(hostname=hostname, alias=alias, status='up', port=port)             
+        self.db.add(host)
+        self.db.commit()
+        result = self.controller.delete_host('Daria')
+        assert result == {'deleted': True, 'name': 'Daria'}
+
+        
+
+    def test_get_host(self):
+        hostname = '127.0.0.2'
+        alias = 'Rabbit'
+        port = 2377
+
+        host = Host(hostname=hostname, alias=alias, status='up', port=port)             
+        self.db.add(host)
+        self.db.commit()
+
+        host = self.controller.get_host('127.0.0.2')
+        assert host['port'] == 2377
+        assert host['hostname'] == u'127.0.0.2'
         assert host['status'] == u'up'
-        assert host['alias'] == u'Daria'
+        assert host['alias'] == u'Rabbit'
+
+        
 
 
